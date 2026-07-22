@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  name         String
+  email        String
+  role         String   @default("admin")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admin_users")
+}
+
+model LabSetting {
+  id              Int      @id @default(1)
+  labName         String   @default("EdgeSys Research Lab")
+  shortName       String   @default("EdgeSys Lab")
+  subtitle        String   @default("Intelligent Distributed Computing")
+  tagline         String   @default("Research beyond the cloud.")
+  heroTitle       String   @default("Building intelligence at the edge of the network.")
+  heroDescription String   @default("We design adaptive, efficient, and dependable computing systems.")
+  description     String   @default("Advancing edge intelligence, distributed systems, and dependable computing.")
+  email           String   @default("edgesys@example.edu")
+  phone           String   @default("+91 00000 00000")
+  location        String   @default("Department of Computer Science and Engineering")
+  website         String   @default("https://example.edu")
+  activePages     Json     @map("active_pages")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("lab_settings")
+}
+
+model ResearchArea {
+  id          String   @id @default(uuid())
+  title       String
+  icon        String   @default("EI")
+  description String
+  tags        String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("research_areas")
+}
+
+model Person {
+  id        String   @id @default(uuid())
+  name      String
+  role      String
+  group     String
+  bio       String
+  interests String
+  email     String
+  image     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("people")
+}
+
+model Publication {
+  id        String   @id @default(uuid())
+  title     String
+  authors   String
+  venue     String
+  year      String
+  type      String   @default("Journal")
+  doi       String?
+  featured  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("publications")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  title     String
+  summary   String
+  status    String   @default("Ongoing")
+  lead      String
+  funding   String?
+  start     String
+  end       String
+  tags      String[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("projects")
+}
+
+model NewsItem {
+  id        String   @id @default(uuid())
+  title     String
+  date      String
+  category  String   @default("Lab Update")
+  summary   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("news_items")
+}

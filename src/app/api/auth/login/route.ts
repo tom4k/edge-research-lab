@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { signToken } from '@/lib/auth';
 import { initialAdminUsers } from '@/lib/seedData';
 import { AdminUser } from '@/lib/types';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
@@ -12,24 +13,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password required' }, { status: 400 });
     }
 
-    const allUsers: (AdminUser & { passwordHash: string })[] = Array.isArray(customUsers) && customUsers.length > 0
-      ? customUsers
-      : initialAdminUsers;
+    let userToAuth: { id: string; username: string; name: string; email: string; role: any; passwordHash: string } | null = null;
 
-    const user = allUsers.find(
-      (u) => u.username.toLowerCase() === String(username).toLowerCase()
-    );
+    const hasDb = !!(process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
 
-    if (!user || user.passwordHash !== password) {
+    if (hasDb) {
+      try {
+        const dbUser = await prisma.adminUser.findUnique({
+          where: { username: String(username).toLowerCase() }
+        });
+        if (dbUser) {
+          userToAuth = {
+            id: dbUser.id,
+            username: dbUser.username,
+            name: dbUser.name,
+            email: dbUser.email,
+            role: dbUser.role,
+            passwordHash: dbUser.passwordHash
+          };
+        }
+      } catch (dbError) {
+        console.warn('Database user query failed, falling back to local list:', dbError);
+      }
+    }
+
+    if (!userToAuth) {
+      const allUsers: (AdminUser & { passwordHash: string })[] = Array.isArray(customUsers) && customUsers.length > 0
+        ? customUsers
+        : initialAdminUsers;
+
+      const found = allUsers.find(
+        (u) => u.username.toLowerCase() === String(username).toLowerCase()
+      );
+      if (found) {
+        userToAuth = found;
+      }
+    }
+
+    if (!userToAuth || userToAuth.passwordHash !== password) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
     const payload = {
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      email: user.email,
-      role: user.role
+      id: userToAuth.id,
+      username: userToAuth.username,
+      name: userToAuth.name,
+      email: userToAuth.email,
+      role: userToAuth.role
     };
 
     const token = await signToken(payload);
@@ -37,7 +67,8 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       token,
-      user: payload
+      user: payload,
+      usingDatabase: hasDb
     });
 
     response.cookies.set('edgesys_token', token, {

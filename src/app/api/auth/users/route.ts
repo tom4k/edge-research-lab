@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { AdminUser, UserRole } from '@/lib/types';
+import { prisma } from '@/lib/prisma';
 
 async function authenticateSuperAdmin(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -46,6 +47,24 @@ export async function POST(request: Request) {
       passwordHash: String(password)
     };
 
+    const hasDb = !!(process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
+    if (hasDb) {
+      try {
+        await prisma.adminUser.create({
+          data: {
+            id: newUser.id,
+            username: newUser.username,
+            name: newUser.name,
+            email: newUser.email,
+            role: newUser.role,
+            passwordHash: newUser.passwordHash
+          }
+        });
+      } catch (dbError) {
+        console.warn('Failed to insert user into Prisma database:', dbError);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       user: {
@@ -56,7 +75,8 @@ export async function POST(request: Request) {
         role: newUser.role,
         createdAt: newUser.createdAt
       },
-      fullUserRecord: newUser
+      fullUserRecord: newUser,
+      usingDatabase: hasDb
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
