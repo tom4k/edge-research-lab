@@ -47,11 +47,14 @@ function cloneSeed(): LabData {
   return JSON.parse(JSON.stringify(seedData));
 }
 
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<LabData>(seedData);
+export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: LabData }> = ({
+  children,
+  initialData
+}) => {
+  const [data, setData] = useState<LabData>(initialData || seedData);
   const { toast } = useToast();
 
-  // Load from API / DB on mount
+  // Background fetch to keep client state revalidated
   useEffect(() => {
     fetch('/api/content')
       .then((res) => res.json())
@@ -67,21 +70,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch {}
         }
       })
-      .catch(() => {
-        // Fallback to localStorage if offline / network error
-        try {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (!parsed.settings.activePages) {
-              parsed.settings.activePages = { ...seedData.settings.activePages };
-            }
-            setData(parsed);
-          }
-        } catch {
-          setData(cloneSeed());
-        }
-      });
+      .catch(() => {});
   }, []);
 
   const syncToDatabase = useCallback((nextData: LabData) => {

@@ -5,17 +5,22 @@ import { AuthProvider } from '@/context/AuthContext';
 import { DataProvider } from '@/context/DataContext';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { getLabData } from '@/lib/getLabData';
+
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'EdgeSys Research Lab',
   description: 'EdgeSys Research Lab — research in edge, fog, distributed and intelligent computing.'
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: {
   children: React.ReactNode;
 }) {
+  const initialData = await getLabData();
+
   return (
     <html lang="en" data-theme="dark">
       <body>
@@ -24,7 +29,7 @@ export default function RootLayout({
         </a>
         <ToastProvider>
           <AuthProvider>
-            <DataProvider>
+            <DataProvider initialData={initialData}>
               <SiteHeader />
               <main id="main-content" tabIndex={-1}>
                 {children}
