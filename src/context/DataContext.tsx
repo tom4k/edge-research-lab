@@ -51,20 +51,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [data, setData] = useState<LabData>(seedData);
   const { toast } = useToast();
 
+  // Load from API / DB on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Ensure activePages map exists
-        if (!parsed.settings.activePages) {
-          parsed.settings.activePages = { ...seedData.settings.activePages };
+    fetch('/api/content')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && resData.data) {
+          const content = resData.data;
+          if (!content.settings.activePages) {
+            content.settings.activePages = { ...seedData.settings.activePages };
+          }
+          setData(content);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+          } catch {}
         }
-        setData(parsed);
-      }
-    } catch {
-      setData(cloneSeed());
-    }
+      })
+      .catch(() => {
+        // Fallback to localStorage if offline / network error
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (!parsed.settings.activePages) {
+              parsed.settings.activePages = { ...seedData.settings.activePages };
+            }
+            setData(parsed);
+          }
+        } catch {
+          setData(cloneSeed());
+        }
+      });
+  }, []);
+
+  const syncToDatabase = useCallback((nextData: LabData) => {
+    fetch('/api/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nextData)
+    }).catch((err) => {
+      console.warn('Background database sync warning:', err);
+    });
   }, []);
 
   const persist = useCallback(
@@ -72,12 +99,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setData(nextData);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(nextData));
-        toast(message);
       } catch (err) {
         console.error('Failed to persist to localStorage', err);
       }
+      toast(message);
+      syncToDatabase(nextData);
     },
-    [toast]
+    [toast, syncToDatabase]
   );
 
   const saveData = useCallback(
