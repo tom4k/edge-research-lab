@@ -4,13 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
+import { Publication } from '@/lib/types';
 
 export default function HomePage() {
   const { data } = useData();
   const { toast } = useToast();
   const s = data.settings;
 
-  const copyCitation = (pub: any) => {
+  const copyCitation = (pub: Publication) => {
     const citation = `${pub.authors} (${pub.year}). ${pub.title}. ${pub.venue}.${
       pub.doi ? ` https://doi.org/${pub.doi}` : ''
     }`;

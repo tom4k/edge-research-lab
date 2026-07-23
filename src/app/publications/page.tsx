@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { PageGuard } from '@/components/PageGuard';
+import { Publication } from '@/lib/types';
 
 export default function PublicationsPage() {
   const { data } = useData();
@@ -34,7 +35,7 @@ export default function PublicationsPage() {
       });
   }, [data.publications, searchTerm, selectedYear, selectedType]);
 
-  const copyCitation = (pub: any) => {
+  const copyCitation = (pub: Publication) => {
     const citation = `${pub.authors} (${pub.year}). ${pub.title}. ${pub.venue}.${
       pub.doi ? ` https://doi.org/${pub.doi}` : ''
     }`;

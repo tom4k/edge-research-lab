@@ -3,18 +3,25 @@ import { seedData } from '@/lib/seedData';
 import { LabData } from '@/lib/types';
 
 export async function getLabData(): Promise<LabData> {
+  // Ensure this function is only executed on the server side
+  if (typeof window !== 'undefined') {
+    return seedData;
+  }
+
   try {
     const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL);
     if (!hasDb) {
       return seedData;
     }
 
-    const settingsDb = await prisma.labSetting.findUnique({ where: { id: 1 } });
-    const researchDb = await prisma.researchArea.findMany();
-    const peopleDb = await prisma.person.findMany();
-    const publicationsDb = await prisma.publication.findMany();
-    const projectsDb = await prisma.project.findMany();
-    const newsDb = await prisma.newsItem.findMany();
+    const [settingsDb, researchDb, peopleDb, publicationsDb, projectsDb, newsDb] = await Promise.all([
+      prisma.labSetting.findUnique({ where: { id: 1 } }),
+      prisma.researchArea.findMany(),
+      prisma.person.findMany(),
+      prisma.publication.findMany(),
+      prisma.project.findMany(),
+      prisma.newsItem.findMany()
+    ]);
 
     if (!settingsDb) {
       return seedData;
@@ -43,14 +50,14 @@ export async function getLabData(): Promise<LabData> {
         { value: `${projectsDb.length}`, label: 'Research projects' },
         { value: '6', label: 'Academic and industry partners' }
       ],
-      research: researchDb.map(r => ({
+      research: (researchDb as any[]).map((r: any) => ({
         id: r.id,
         title: r.title,
         icon: r.icon,
         description: r.description,
-        tags: r.tags
+        tags: r.tags || []
       })),
-      people: peopleDb.map(p => ({
+      people: (peopleDb as any[]).map((p: any) => ({
         id: p.id,
         name: p.name,
         role: p.role,
@@ -60,7 +67,7 @@ export async function getLabData(): Promise<LabData> {
         email: p.email,
         image: p.image || ''
       })),
-      publications: publicationsDb.map(pub => ({
+      publications: (publicationsDb as any[]).map((pub: any) => ({
         id: pub.id,
         title: pub.title,
         authors: pub.authors,
@@ -68,9 +75,9 @@ export async function getLabData(): Promise<LabData> {
         year: pub.year,
         type: pub.type,
         doi: pub.doi || '',
-        featured: pub.featured
+        featured: pub.featured || false
       })),
-      projects: projectsDb.map(proj => ({
+      projects: (projectsDb as any[]).map((proj: any) => ({
         id: proj.id,
         title: proj.title,
         summary: proj.summary,
@@ -79,9 +86,9 @@ export async function getLabData(): Promise<LabData> {
         funding: proj.funding || '',
         start: proj.start,
         end: proj.end,
-        tags: proj.tags
+        tags: proj.tags || []
       })),
-      news: newsDb.map(n => ({
+      news: (newsDb as any[]).map((n: any) => ({
         id: n.id,
         title: n.title,
         date: n.date,
@@ -90,7 +97,7 @@ export async function getLabData(): Promise<LabData> {
       }))
     };
   } catch (error) {
-    console.error('Server getLabData error:', error);
+    console.warn('Server getLabData DB query warning, falling back to seedData:', error);
     return seedData;
   }
 }
