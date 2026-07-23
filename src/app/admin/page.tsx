@@ -8,7 +8,7 @@ import { useToast } from '@/context/ToastContext';
 import { PageVisibilityMap, UserRole } from '@/lib/types';
 
 export default function AdminPage() {
-  const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, removeAdminUser } = useAuth();
+  const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
   const { data, updateSettings, togglePageActive, addItem, updateItem, deleteItem, importJSON, exportJSON, resetDemoData } = useData();
   const { toast } = useToast();
 
@@ -32,6 +32,7 @@ export default function AdminPage() {
 
   // Modal State for CRUD
   const [editingItem, setEditingItem] = useState<{ collection: string; id?: string; data?: any } | null>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -41,9 +42,70 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('admin');
 
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotQuery, setForgotQuery] = useState('');
+  const [resetCodeInput, setResetCodeInput] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [generatedResetCode, setGeneratedResetCode] = useState<string | null>(null);
+  const [resetStep, setResetStep] = useState<1 | 2>(1);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await login(usernameInput, passwordInput);
+  };
+
+  const handleRequestResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request', emailOrUsername: forgotQuery })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.success) {
+        toast('Password reset code generated');
+        setGeneratedResetCode(resData.resetToken || null);
+        setResetStep(2);
+      } else {
+        toast(resData.error || 'Failed to generate reset code');
+      }
+    } catch {
+      toast('Network error during reset request');
+    }
+  };
+
+  const handlePerformReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reset',
+          emailOrUsername: forgotQuery,
+          resetToken: resetCodeInput,
+          newPassword: newPasswordInput
+        })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.success) {
+        toast('Password reset successfully! You can now sign in.');
+        setShowForgotModal(false);
+        setUsernameInput(forgotQuery);
+        setPasswordInput(newPasswordInput);
+        setForgotQuery('');
+        setResetCodeInput('');
+        setNewPasswordInput('');
+        setGeneratedResetCode(null);
+        setResetStep(1);
+      } else {
+        toast(resData.error || 'Failed to reset password');
+      }
+    } catch {
+      toast('Network error during password reset');
+    }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -69,9 +131,9 @@ export default function AdminPage() {
     return (
       <div className="page">
         <div className="login-card">
-          <span className="eyebrow">JWT Administrator</span>
+          <span className="eyebrow">Neon Auth & JWT</span>
           <h1>Content Dashboard</h1>
-          <p>Sign in with your JWT credentials to manage the lab console.</p>
+          <p>Sign in with your Neon Auth admin credentials to manage the lab console.</p>
           <form onSubmit={handleLogin}>
             <div className="field">
               <label htmlFor="admin-user">Username</label>
@@ -85,7 +147,20 @@ export default function AdminPage() {
               />
             </div>
             <div className="field">
-              <label htmlFor="admin-pass">Password</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label htmlFor="admin-pass">Password</label>
+                <button
+                  type="button"
+                  className="text-button"
+                  style={{ fontSize: '.82rem' }}
+                  onClick={() => {
+                    setForgotQuery(usernameInput);
+                    setShowForgotModal(true);
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
               <input
                 className="input"
                 id="admin-pass"
@@ -97,7 +172,7 @@ export default function AdminPage() {
               />
             </div>
             <button className="button" type="submit">
-              Sign in with JWT
+              Sign in with Neon Auth
             </button>
             <div className="credentials-note">
               <strong>Super Admin:</strong> superadmin / super123!
@@ -106,6 +181,88 @@ export default function AdminPage() {
             </div>
           </form>
         </div>
+
+        {/* FORGOT PASSWORD MODAL */}
+        {showForgotModal && (
+          <div className="modal-backdrop" onClick={() => setShowForgotModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Neon Auth Password Recovery</h2>
+                <button className="icon-button" onClick={() => setShowForgotModal(false)}>
+                  ×
+                </button>
+              </div>
+
+              {resetStep === 1 ? (
+                <form className="admin-form" onSubmit={handleRequestResetCode} style={{ marginTop: '20px' }}>
+                  <div className="field span-2">
+                    <label>Enter your Username or Email address</label>
+                    <input
+                      className="input"
+                      required
+                      placeholder="e.g. superadmin or superadmin@example.edu"
+                      value={forgotQuery}
+                      onChange={(e) => setForgotQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="span-2">
+                    <button className="button" type="submit">
+                      Request Password Reset Code
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form className="admin-form" onSubmit={handlePerformReset} style={{ marginTop: '20px' }}>
+                  {generatedResetCode && (
+                    <div className="field span-2" style={{ padding: '14px', background: 'var(--surface-soft)', borderRadius: '12px', border: '1px solid var(--line)' }}>
+                      <strong>Reset Verification Code Generated:</strong>
+                      <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '.15em', margin: '4px 0' }}>
+                        {generatedResetCode}
+                      </div>
+                      <small style={{ color: 'var(--muted)' }}>Copy this verification code or enter it below to set your new password.</small>
+                    </div>
+                  )}
+
+                  <div className="field">
+                    <label>6-Digit Reset Code</label>
+                    <input
+                      className="input"
+                      required
+                      placeholder="e.g. 123456"
+                      value={resetCodeInput}
+                      onChange={(e) => setResetCodeInput(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>New Password</label>
+                    <input
+                      className="input"
+                      type="password"
+                      required
+                      placeholder="Enter your new password"
+                      value={newPasswordInput}
+                      onChange={(e) => setNewPasswordInput(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="span-2" style={{ display: 'flex', gap: '12px' }}>
+                    <button className="button" type="submit">
+                      Reset Password Now
+                    </button>
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      onClick={() => setResetStep(1)}
+                    >
+                      Back
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -284,8 +441,11 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td>
-                      {u.id !== user.id && (
-                        <div className="row-actions">
+                      <div className="row-actions">
+                        <button onClick={() => setEditingUser(u)}>
+                          Edit
+                        </button>
+                        {u.id !== user.id && (
                           <button
                             onClick={() => {
                               if (confirm(`Remove admin account for ${u.name}?`)) {
@@ -295,8 +455,8 @@ export default function AdminPage() {
                           >
                             Remove
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -538,6 +698,73 @@ export default function AdminPage() {
           </div>
         )}
       </section>
+
+      {/* MODAL FOR EDITING USER (SUPER ADMIN ONLY) */}
+      {editingUser && (
+        <div className="modal-backdrop" onClick={() => setEditingUser(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Admin User (@{editingUser.username})</h2>
+              <button className="icon-button" onClick={() => setEditingUser(null)}>
+                ×
+              </button>
+            </div>
+            <form
+              className="admin-form"
+              style={{ marginTop: '20px' }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const name = String(formData.get('name')).trim();
+                const email = String(formData.get('email')).trim();
+                const role = String(formData.get('role')) as UserRole;
+                const password = String(formData.get('password')).trim();
+
+                const success = await updateAdminUser(editingUser.id, {
+                  name,
+                  email,
+                  role,
+                  ...(password ? { password } : {})
+                });
+
+                if (success) {
+                  setEditingUser(null);
+                }
+              }}
+            >
+              <div className="field">
+                <label>Full Name</label>
+                <input className="input" name="name" defaultValue={editingUser.name} required />
+              </div>
+              <div className="field">
+                <label>Email</label>
+                <input className="input" name="email" type="email" defaultValue={editingUser.email} required />
+              </div>
+              <div className="field">
+                <label>Role</label>
+                <select className="select" name="role" defaultValue={editingUser.role}>
+                  <option value="admin">Admin (Content & Settings)</option>
+                  <option value="superadmin">Super Admin (Full Control + User Mgmt)</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>New Password (Optional)</label>
+                <input
+                  className="input"
+                  name="password"
+                  type="password"
+                  placeholder="Leave blank to keep unchanged"
+                />
+              </div>
+              <div className="span-2">
+                <button className="button" type="submit">
+                  Update Admin Details
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* MODAL FOR ADDING USER (SUPER ADMIN ONLY) */}
       {showAddUserModal && (

@@ -82,3 +82,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const superAdmin = await authenticateSuperAdmin(request);
+    if (!superAdmin) {
+      return NextResponse.json({ error: 'Unauthorized. Super Admin role required.' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { id, name, email, role, password } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 });
+    }
+
+    const updateData: any = {};
+    if (name) updateData.name = String(name).trim();
+    if (email) updateData.email = String(email).trim();
+    if (role) updateData.role = (role === 'superadmin' ? 'superadmin' : 'admin') as UserRole;
+    if (password) updateData.passwordHash = String(password);
+
+    const hasDb = !!(process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
+    if (hasDb) {
+      try {
+        await prisma.adminUser.update({
+          where: { id },
+          data: updateData
+        });
+      } catch (dbError) {
+        console.warn('Failed to update user in Prisma database:', dbError);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'User updated successfully',
+      updatedFields: updateData
+    });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
+}

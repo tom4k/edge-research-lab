@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   addAdminUser: (newUser: { username: string; name: string; email: string; role: UserRole; password: string }) => Promise<boolean>;
+  updateAdminUser: (userId: string, updatedFields: { name?: string; email?: string; role?: UserRole; password?: string }) => Promise<boolean>;
   removeAdminUser: (userId: string) => Promise<boolean>;
 }
 
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => false,
   logout: () => {},
   addAdminUser: async () => false,
+  updateAdminUser: async () => false,
   removeAdminUser: async () => false
 });
 
@@ -140,6 +142,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [user, token, usersList, toast]
   );
 
+  const updateAdminUser = useCallback(
+    async (
+      userId: string,
+      updatedFields: { name?: string; email?: string; role?: UserRole; password?: string }
+    ): Promise<boolean> => {
+      if (user?.role !== 'superadmin') {
+        toast('Only Super Admin can edit user roles & details');
+        return false;
+      }
+
+      if (updatedFields.role === 'admin') {
+        const targetUser = usersList.find((u) => u.id === userId);
+        if (targetUser?.role === 'superadmin') {
+          const superAdminCount = usersList.filter((u) => u.role === 'superadmin').length;
+          if (superAdminCount <= 1) {
+            toast('Cannot demote the only Super Admin account');
+            return false;
+          }
+        }
+      }
+
+      try {
+        const res = await fetch('/api/auth/users', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ id: userId, ...updatedFields })
+        });
+
+        const resData = await res.json();
+        if (res.ok && resData.success) {
+          const updated = usersList.map((u) => {
+            if (u.id === userId) {
+              return {
+                ...u,
+                ...(updatedFields.name ? { name: updatedFields.name } : {}),
+                ...(updatedFields.email ? { email: updatedFields.email } : {}),
+                ...(updatedFields.role ? { role: updatedFields.role } : {}),
+                ...(updatedFields.password ? { passwordHash: updatedFields.password } : {})
+              };
+            }
+            return u;
+          });
+          setUsersList(updated);
+          saveAdminUsersList(updated);
+
+          if (user && user.id === userId) {
+            setUser((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ...(updatedFields.name ? { name: updatedFields.name } : {}),
+                    ...(updatedFields.email ? { email: updatedFields.email } : {}),
+                    ...(updatedFields.role ? { role: updatedFields.role } : {})
+                  }
+                : null
+            );
+          }
+
+          toast('User updated successfully');
+          return true;
+        } else {
+          toast(resData.error || 'Failed to update user');
+          return false;
+        }
+      } catch (e) {
+        toast('Error updating user');
+        return false;
+      }
+    },
+    [user, token, usersList, toast]
+  );
+
   const removeAdminUser = useCallback(
     async (userId: string): Promise<boolean> => {
       if (user?.role !== 'superadmin') {
@@ -181,6 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         addAdminUser,
+        updateAdminUser,
         removeAdminUser
       }}
     >
