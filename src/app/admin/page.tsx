@@ -42,70 +42,9 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('admin');
 
-  // Forgot Password Modal State
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotQuery, setForgotQuery] = useState('');
-  const [resetCodeInput, setResetCodeInput] = useState('');
-  const [newPasswordInput, setNewPasswordInput] = useState('');
-  const [generatedResetCode, setGeneratedResetCode] = useState<string | null>(null);
-  const [resetStep, setResetStep] = useState<1 | 2>(1);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await login(usernameInput, passwordInput);
-  };
-
-  const handleRequestResetCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'request', emailOrUsername: forgotQuery })
-      });
-      const resData = await res.json();
-      if (res.ok && resData.success) {
-        toast('Password reset code generated');
-        setGeneratedResetCode(resData.resetToken || null);
-        setResetStep(2);
-      } else {
-        toast(resData.error || 'Failed to generate reset code');
-      }
-    } catch {
-      toast('Network error during reset request');
-    }
-  };
-
-  const handlePerformReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'reset',
-          emailOrUsername: forgotQuery,
-          resetToken: resetCodeInput,
-          newPassword: newPasswordInput
-        })
-      });
-      const resData = await res.json();
-      if (res.ok && resData.success) {
-        toast('Password reset successfully! You can now sign in.');
-        setShowForgotModal(false);
-        setUsernameInput(forgotQuery);
-        setPasswordInput(newPasswordInput);
-        setForgotQuery('');
-        setResetCodeInput('');
-        setNewPasswordInput('');
-        setGeneratedResetCode(null);
-        setResetStep(1);
-      } else {
-        toast(resData.error || 'Failed to reset password');
-      }
-    } catch {
-      toast('Network error during password reset');
-    }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -147,20 +86,7 @@ export default function AdminPage() {
               />
             </div>
             <div className="field">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="admin-pass">Password</label>
-                <button
-                  type="button"
-                  className="text-button"
-                  style={{ fontSize: '.82rem' }}
-                  onClick={() => {
-                    setForgotQuery(usernameInput);
-                    setShowForgotModal(true);
-                  }}
-                >
-                  Forgot password?
-                </button>
-              </div>
+              <label htmlFor="admin-pass">Password</label>
               <input
                 className="input"
                 id="admin-pass"
@@ -181,85 +107,6 @@ export default function AdminPage() {
             </div>
           </form>
         </div>
-
-        {/* FORGOT PASSWORD MODAL */}
-        {showForgotModal && (
-          <div className="modal-backdrop" onClick={() => setShowForgotModal(false)}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2>Neon Auth Password Recovery</h2>
-                <button className="icon-button" onClick={() => setShowForgotModal(false)}>
-                  ×
-                </button>
-              </div>
-
-              {resetStep === 1 ? (
-                <form className="admin-form" onSubmit={handleRequestResetCode} style={{ marginTop: '20px' }}>
-                  <div className="field span-2">
-                    <label>Enter your Username or Email address</label>
-                    <input
-                      className="input"
-                      required
-                      placeholder="e.g. superadmin or superadmin@example.edu"
-                      value={forgotQuery}
-                      onChange={(e) => setForgotQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="span-2">
-                    <button className="button" type="submit">
-                      Request Password Reset Code
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <form className="admin-form" onSubmit={handlePerformReset} style={{ marginTop: '20px' }}>
-                  <div className="field span-2" style={{ padding: '14px', background: 'var(--surface-soft)', borderRadius: '12px', border: '1px solid var(--line)' }}>
-                    <strong>📧 Email Sent</strong>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '.88rem', color: 'var(--muted)' }}>
-                      A 6-digit verification code has been dispatched to your email address ({forgotQuery}). Please check your inbox and enter the code below.
-                    </p>
-                  </div>
-
-                  <div className="field">
-                    <label>6-Digit Reset Code</label>
-                    <input
-                      className="input"
-                      required
-                      placeholder="e.g. 123456"
-                      value={resetCodeInput}
-                      onChange={(e) => setResetCodeInput(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label>New Password</label>
-                    <input
-                      className="input"
-                      type="password"
-                      required
-                      placeholder="Enter your new password"
-                      value={newPasswordInput}
-                      onChange={(e) => setNewPasswordInput(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="span-2" style={{ display: 'flex', gap: '12px' }}>
-                    <button className="button" type="submit">
-                      Reset Password Now
-                    </button>
-                    <button
-                      type="button"
-                      className="button button-secondary"
-                      onClick={() => setResetStep(1)}
-                    >
-                      Back
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     );
   }

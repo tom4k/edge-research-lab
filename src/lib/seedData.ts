@@ -5,7 +5,7 @@ export const initialAdminUsers: (AdminUser & { passwordHash: string })[] = [
     id: 'user-super-admin-01',
     username: 'superadmin',
     name: 'Lab Director (Super Admin)',
-    email: 'superadmin@example.edu',
+    email: 'tomkurian.23phd21003@iiitkottayam.ac.in',
     role: 'superadmin',
     createdAt: '2026-01-01T00:00:00.000Z',
     passwordHash: 'super123!' // In demo auth model verified via JWT API route

@@ -21,7 +21,9 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  if (!hash) return false;
+  if (!password || !hash || typeof password !== 'string' || typeof hash !== 'string') {
+    return false;
+  }
   // If hash is plain-text (e.g. legacy/seed data before bcrypt migration), check direct match
   if (!hash.startsWith('$2a$') && !hash.startsWith('$2b$') && !hash.startsWith('$2y$')) {
     return password === hash;
