@@ -33,6 +33,32 @@
   --shadow: 0 18px 45px rgba(0, 0, 0, .28);
 }
 
+/* Theme Presets */
+[data-theme-preset="emerald-green"] {
+  --primary: #059669;
+  --primary-strong: #047857;
+  --accent: #10b981;
+  --navy: #064e3b;
+}
+[data-theme-preset="violet-nebula"] {
+  --primary: #8b5cf6;
+  --primary-strong: #7c3aed;
+  --accent: #f43f5e;
+  --navy: #1e1b4b;
+}
+[data-theme-preset="amber-gold"] {
+  --primary: #d97706;
+  --primary-strong: #b45309;
+  --accent: #f59e0b;
+  --navy: #1c1917;
+}
+[data-theme-preset="ruby-crimson"] {
+  --primary: #e11d48;
+  --primary-strong: #be123c;
+  --accent: #fb7185;
+  --navy: #1f0910;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {

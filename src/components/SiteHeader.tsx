@@ -28,6 +28,10 @@ export const SiteHeader: React.FC = () => {
     document.documentElement.dataset.theme = savedTheme;
   }, []);
 
+  useEffect(() => {
+    document.documentElement.dataset.themePreset = s.themePreset || 'cyber-blue';
+  }, [s.themePreset]);
+
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);

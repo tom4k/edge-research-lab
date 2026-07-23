@@ -30,6 +30,7 @@ export interface LabSettings {
   phone: string;
   location: string;
   website: string;
+  themePreset?: string;
   activePages: PageVisibilityMap;
 }
 

@@ -34,6 +34,7 @@ export const seedData: LabData = {
     phone: '+91 00000 00000',
     location: 'Department of Computer Science and Engineering, Your Institution',
     website: 'https://example.edu',
+    themePreset: 'cyber-blue',
     activePages: {
       research: true,
       people: true,

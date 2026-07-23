@@ -32,6 +32,7 @@ model LabSetting {
   phone           String   @default("+91 00000 00000")
   location        String   @default("Department of Computer Science and Engineering")
   website         String   @default("https://example.edu")
+  themePreset     String   @default("cyber-blue") @map("theme_preset")
   activePages     Json     @map("active_pages")
   updatedAt       DateTime @updatedAt @map("updated_at")
 

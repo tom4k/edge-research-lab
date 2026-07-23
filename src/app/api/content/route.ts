@@ -38,6 +38,7 @@ export async function POST(request: Request) {
           phone: settings.phone,
           location: settings.location,
           website: settings.website,
+          themePreset: settings.themePreset || 'cyber-blue',
           activePages: settings.activePages as any
         },
         create: {
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
           phone: settings.phone,
           location: settings.location,
           website: settings.website,
+          themePreset: settings.themePreset || 'cyber-blue',
           activePages: settings.activePages as any
         }
       });

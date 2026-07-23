@@ -42,6 +42,7 @@ export async function getLabData(): Promise<LabData> {
         phone: settingsDb.phone,
         location: settingsDb.location,
         website: settingsDb.website,
+        themePreset: settingsDb.themePreset || 'cyber-blue',
         activePages
       },
       stats: [

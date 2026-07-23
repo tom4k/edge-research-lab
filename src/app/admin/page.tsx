@@ -15,7 +15,15 @@ export default function AdminPage() {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
-  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'settings' | 'research' | 'people' | 'publications' | 'projects' | 'news' | 'data'>('dashboard');
+  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'projects' | 'news' | 'data'>('dashboard');
+
+  const themePresets = [
+    { id: 'cyber-blue', name: 'Cyber Edge Blue (Default)', primary: '#0d63ff', accent: '#13c8c2', navy: '#07152f' },
+    { id: 'emerald-green', name: 'Emerald Quantum Green', primary: '#059669', accent: '#10b981', navy: '#064e3b' },
+    { id: 'violet-nebula', name: 'Violet Nebula Purple', primary: '#8b5cf6', accent: '#f43f5e', navy: '#1e1b4b' },
+    { id: 'amber-gold', name: 'Amber Solar Gold', primary: '#d97706', accent: '#f59e0b', navy: '#1c1917' },
+    { id: 'ruby-crimson', name: 'Ruby Cyber Red', primary: '#e11d48', accent: '#fb7185', navy: '#1f0910' }
+  ];
 
   // Modal State for CRUD
   const [editingItem, setEditingItem] = useState<{ collection: string; id?: string; data?: any } | null>(null);
@@ -125,9 +133,14 @@ export default function AdminPage() {
             Page Activation
           </button>
           {isSuperAdmin && (
-            <button className={adminSection === 'users' ? 'active' : ''} onClick={() => setAdminSection('users')}>
-              User Management
-            </button>
+            <>
+              <button className={adminSection === 'users' ? 'active' : ''} onClick={() => setAdminSection('users')}>
+                User Management
+              </button>
+              <button className={adminSection === 'theme' ? 'active' : ''} onClick={() => setAdminSection('theme')}>
+                Website Theme
+              </button>
+            </>
           )}
           <button className={adminSection === 'settings' ? 'active' : ''} onClick={() => setAdminSection('settings')}>
             Site Settings
@@ -284,6 +297,59 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* WEBSITE THEME SELECTION (SUPER ADMIN ONLY) */}
+        {adminSection === 'theme' && isSuperAdmin && (
+          <div>
+            <div className="admin-topbar">
+              <div>
+                <span className="eyebrow">Super Admin Exclusive</span>
+                <h1>Website Theme Preset</h1>
+              </div>
+            </div>
+            <div className="admin-panel">
+              <p style={{ marginBottom: '24px' }}>
+                Select a site-wide color palette theme for the website. The chosen theme will update CSS variables globally across all pages for every visitor.
+              </p>
+
+              <div className="grid grid-2">
+                {themePresets.map((t) => {
+                  const isSelected = (data.settings.themePreset || 'cyber-blue') === t.id;
+                  return (
+                    <div
+                      key={t.id}
+                      className="card"
+                      style={{
+                        borderColor: isSelected ? 'var(--primary)' : 'var(--line)',
+                        borderWidth: isSelected ? '2px' : '1px',
+                        background: isSelected ? 'color-mix(in srgb, var(--primary) 8%, var(--surface))' : 'var(--surface)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <strong>{t.name}</strong>
+                        {isSelected && <span className="tag" style={{ background: 'var(--primary)', color: 'white' }}>Active Theme</span>}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: t.primary }} title={`Primary: ${t.primary}`} />
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: t.accent }} title={`Accent: ${t.accent}`} />
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: t.navy }} title={`Navy: ${t.navy}`} />
+                      </div>
+
+                      <button
+                        className={`button button-small ${isSelected ? 'button-secondary' : ''}`}
+                        disabled={isSelected}
+                        onClick={() => updateSettings({ themePreset: t.id })}
+                      >
+                        {isSelected ? 'Currently Applied' : 'Apply Theme'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
