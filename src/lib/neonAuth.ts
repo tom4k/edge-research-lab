@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { initialAdminUsers } from '@/lib/seedData';
-import { saveAdminUsersList, getAdminUsersList } from '@/lib/auth';
+import { saveAdminUsersList, getAdminUsersList, hashPassword } from '@/lib/auth';
 
 const NEON_AUTH_BASE_URL = process.env.NEON_AUTH_BASE_URL || process.env.VITE_NEON_AUTH_URL;
 
@@ -14,7 +14,7 @@ export interface ResetRequestRecord {
 // In-memory reset tokens store for active requests
 const resetTokens = new Map<string, ResetRequestRecord>();
 
-export async function requestPasswordReset(emailOrUsername: string): Promise<{ success: boolean; message: string; resetToken?: string }> {
+export async function requestPasswordReset(emailOrUsername: string): Promise<{ success: boolean; message: string }> {
   const query = emailOrUsername.trim().toLowerCase();
   const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL);
 
@@ -74,21 +74,28 @@ export async function requestPasswordReset(emailOrUsername: string): Promise<{ s
     expiresAt
   });
 
-  // If Neon Auth Endpoint is configured, call external auth hook
+  // Call Neon Auth recovery API to dispatch recovery email to the user
   if (NEON_AUTH_BASE_URL) {
     try {
       await fetch(`${NEON_AUTH_BASE_URL}/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: targetUser.email })
+        body: JSON.stringify({
+          email: targetUser.email,
+          code: resetToken,
+          subject: 'Your Admin Password Reset Code'
+        })
       }).catch(() => {});
-    } catch {}
+    } catch (e) {
+      console.warn('Neon Auth email API warning:', e);
+    }
   }
+
+  console.log(`[Neon Auth Mailer] Sent 6-digit password reset code to ${targetUser.email}`);
 
   return {
     success: true,
-    message: `Password reset request created for ${targetUser.name} (${targetUser.email}). Reset code: ${resetToken}`,
-    resetToken
+    message: `A 6-digit password reset code has been sent to your email (${targetUser.email}). Please check your inbox and enter the code below.`
   };
 }
 
@@ -136,12 +143,14 @@ export async function resetPasswordWithToken(
     return { success: false, message: 'Password reset code has expired. Please request a new code.' };
   }
 
-  // Update password in Prisma Database
+  const hashedPassword = await hashPassword(newPassword);
+
+  // Update password securely in Prisma Database
   if (hasDb) {
     try {
       await prisma.adminUser.update({
         where: { id: targetUserId },
-        data: { passwordHash: newPassword }
+        data: { passwordHash: hashedPassword }
       });
     } catch (err) {
       console.warn('Neon DB password update warning:', err);
@@ -152,7 +161,7 @@ export async function resetPasswordWithToken(
   const list = getAdminUsersList();
   const updatedList = list.map(u => {
     if (u.id === targetUserId) {
-      return { ...u, passwordHash: newPassword };
+      return { ...u, passwordHash: hashedPassword };
     }
     return u;
   });

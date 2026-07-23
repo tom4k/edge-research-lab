@@ -15,8 +15,7 @@ export async function POST(request: Request) {
       if (result.success) {
         return NextResponse.json({
           success: true,
-          message: result.message,
-          resetToken: result.resetToken
+          message: result.message
         });
       } else {
         return NextResponse.json({ error: result.message }, { status: 404 });

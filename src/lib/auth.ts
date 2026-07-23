@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import bcrypt from 'bcryptjs';
 import { AdminUser, UserRole } from './types';
 import { initialAdminUsers } from './seedData';
 
@@ -12,6 +13,24 @@ export interface JWTPayload {
   name: string;
   email: string;
   role: UserRole;
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  if (!hash) return false;
+  // If hash is plain-text (e.g. legacy/seed data before bcrypt migration), check direct match
+  if (!hash.startsWith('$2a$') && !hash.startsWith('$2b$') && !hash.startsWith('$2y$')) {
+    return password === hash;
+  }
+  try {
+    return await bcrypt.compare(password, hash);
+  } catch {
+    return password === hash;
+  }
 }
 
 export async function signToken(payload: JWTPayload): Promise<string> {

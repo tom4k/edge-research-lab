@@ -213,15 +213,12 @@ export default function AdminPage() {
                 </form>
               ) : (
                 <form className="admin-form" onSubmit={handlePerformReset} style={{ marginTop: '20px' }}>
-                  {generatedResetCode && (
-                    <div className="field span-2" style={{ padding: '14px', background: 'var(--surface-soft)', borderRadius: '12px', border: '1px solid var(--line)' }}>
-                      <strong>Reset Verification Code Generated:</strong>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '.15em', margin: '4px 0' }}>
-                        {generatedResetCode}
-                      </div>
-                      <small style={{ color: 'var(--muted)' }}>Copy this verification code or enter it below to set your new password.</small>
-                    </div>
-                  )}
+                  <div className="field span-2" style={{ padding: '14px', background: 'var(--surface-soft)', borderRadius: '12px', border: '1px solid var(--line)' }}>
+                    <strong>📧 Email Sent</strong>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '.88rem', color: 'var(--muted)' }}>
+                      A 6-digit verification code has been dispatched to your email address ({forgotQuery}). Please check your inbox and enter the code below.
+                    </p>
+                  </div>
 
                   <div className="field">
                     <label>6-Digit Reset Code</label>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { signToken } from '@/lib/auth';
+import { signToken, verifyPassword } from '@/lib/auth';
 import { initialAdminUsers } from '@/lib/seedData';
 import { AdminUser } from '@/lib/types';
 import { prisma } from '@/lib/prisma';
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!userToAuth || userToAuth.passwordHash !== password) {
+    const isPasswordValid = userToAuth ? await verifyPassword(password, userToAuth.passwordHash) : false;
+    if (!userToAuth || !isPasswordValid) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 

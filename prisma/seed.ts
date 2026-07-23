@@ -1,23 +1,29 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import { initialAdminUsers, seedData } from '../src/lib/seedData';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding Vercel Postgres Database...');
+  console.log('Seeding Vercel Postgres Database with bcrypt hashed admin passwords...');
 
   // Seed Admin Users
   for (const user of initialAdminUsers) {
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(user.passwordHash, salt);
+
     await prisma.adminUser.upsert({
       where: { username: user.username },
-      update: {},
+      update: {
+        passwordHash
+      },
       create: {
         id: user.id,
         username: user.username,
         name: user.name,
         email: user.email,
         role: user.role,
-        passwordHash: user.passwordHash
+        passwordHash
       }
     });
   }
@@ -128,7 +134,7 @@ async function main() {
     });
   }
 
-  console.log('Database seeded successfully!');
+  console.log('Database seeded successfully with hashed bcrypt passwords!');
 }
 
 main()

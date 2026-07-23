@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, hashPassword } from '@/lib/auth';
 import { AdminUser, UserRole } from '@/lib/types';
 import { prisma } from '@/lib/prisma';
 
@@ -37,6 +37,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields (username, name, password)' }, { status: 400 });
     }
 
+    const hashedPassword = await hashPassword(String(password));
+
     const newUser: AdminUser & { passwordHash: string } = {
       id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       username: String(username).trim().toLowerCase(),
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
       email: String(email || `${username}@example.edu`).trim(),
       role: (role === 'superadmin' ? 'superadmin' : 'admin') as UserRole,
       createdAt: new Date().toISOString(),
-      passwordHash: String(password)
+      passwordHash: hashedPassword
     };
 
     const hasDb = !!(process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
@@ -101,7 +103,7 @@ export async function PUT(request: Request) {
     if (name) updateData.name = String(name).trim();
     if (email) updateData.email = String(email).trim();
     if (role) updateData.role = (role === 'superadmin' ? 'superadmin' : 'admin') as UserRole;
-    if (password) updateData.passwordHash = String(password);
+    if (password) updateData.passwordHash = await hashPassword(String(password));
 
     const hasDb = !!(process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL);
     if (hasDb) {
