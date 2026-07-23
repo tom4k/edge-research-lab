@@ -58,6 +58,36 @@
   --accent: #fb7185;
   --navy: #1f0910;
 }
+[data-theme-preset="midnight-cyan"] {
+  --primary: #06b6d4;
+  --primary-strong: #0891b2;
+  --accent: #38bdf8;
+  --navy: #082f49;
+}
+[data-theme-preset="forest-pine"] {
+  --primary: #15803d;
+  --primary-strong: #166534;
+  --accent: #84cc16;
+  --navy: #052e16;
+}
+[data-theme-preset="sunset-coral"] {
+  --primary: #f97316;
+  --primary-strong: #ea580c;
+  --accent: #fbbf24;
+  --navy: #2a0800;
+}
+[data-theme-preset="mono-obsidian"] {
+  --primary: #38bdf8;
+  --primary-strong: #0284c7;
+  --accent: #94a3b8;
+  --navy: #090d16;
+}
+[data-theme-preset="synth-indigo"] {
+  --primary: #4f46e5;
+  --primary-strong: #4338ca;
+  --accent: #ec4899;
+  --navy: #111827;
+}
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }

@@ -22,7 +22,12 @@ export default function AdminPage() {
     { id: 'emerald-green', name: 'Emerald Quantum Green', primary: '#059669', accent: '#10b981', navy: '#064e3b' },
     { id: 'violet-nebula', name: 'Violet Nebula Purple', primary: '#8b5cf6', accent: '#f43f5e', navy: '#1e1b4b' },
     { id: 'amber-gold', name: 'Amber Solar Gold', primary: '#d97706', accent: '#f59e0b', navy: '#1c1917' },
-    { id: 'ruby-crimson', name: 'Ruby Cyber Red', primary: '#e11d48', accent: '#fb7185', navy: '#1f0910' }
+    { id: 'ruby-crimson', name: 'Ruby Cyber Red', primary: '#e11d48', accent: '#fb7185', navy: '#1f0910' },
+    { id: 'midnight-cyan', name: 'Midnight Cyan Glass', primary: '#06b6d4', accent: '#38bdf8', navy: '#082f49' },
+    { id: 'forest-pine', name: 'Forest Pine Dark', primary: '#15803d', accent: '#84cc16', navy: '#052e16' },
+    { id: 'sunset-coral', name: 'Sunset Coral Warm', primary: '#f97316', accent: '#fbbf24', navy: '#2a0800' },
+    { id: 'mono-obsidian', name: 'Monochrome Obsidian', primary: '#38bdf8', accent: '#94a3b8', navy: '#090d16' },
+    { id: 'synth-indigo', name: 'Electric Indigo Synth', primary: '#4f46e5', accent: '#ec4899', navy: '#111827' }
   ];
 
   // Modal State for CRUD
