@@ -51,29 +51,39 @@ model ResearchArea {
 }
 
 model Person {
-  id        String   @id @default(uuid())
-  name      String
-  role      String
-  group     String
-  bio       String
-  interests String
-  email     String
-  image     String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid())
+  name       String
+  role       String
+  group      String
+  bio        String
+  interests  String
+  email      String
+  image      String?
+  scholarUrl String   @default("") @map("scholar_url")
+  orcid      String?
+  dblpId     String?  @map("dblp_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  publications Publication[]
 
   @@map("people")
 }
 
 model Publication {
-  id        String   @id @default(uuid())
-  title     String
-  authors   String
-  venue     String
-  year      String
-  type      String   @default("Journal")
-  doi       String?
-  featured  Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid())
+  title         String
+  authors       String
+  venue         String
+  year          String
+  type          String   @default("Journal")
+  doi           String?
+  url           String?
+  featured      Boolean  @default(false)
+  isLabRelevant Boolean  @default(false) @map("is_lab_relevant")
+  externalId    String?  @map("external_id")
+  personId      String?  @map("person_id")
+  person        Person?  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("publications")
 }

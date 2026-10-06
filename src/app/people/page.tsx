@@ -3,11 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { PageGuard } from '@/components/PageGuard';
+import { PersonPublicationsModal } from '@/components/PersonPublicationsModal';
+import { Person } from '@/lib/types';
 
 export default function PeoplePage() {
   const { data } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('All');
+  const [modalPerson, setModalPerson] = useState<Person | null>(null);
 
   const groups = useMemo(() => {
     return ['All', ...Array.from(new Set(data.people.map((p) => p.group)))];
@@ -21,6 +24,13 @@ export default function PeoplePage() {
       return matchesGroup && matchesQuery;
     });
   }, [data.people, searchTerm, selectedGroup]);
+
+  const getPersonPublications = (person: Person) => {
+    const lastName = person.name.split(/\s+/).pop() || person.name;
+    return data.publications.filter(
+      (pub) => pub.personId === person.id || pub.authors.toLowerCase().includes(lastName.toLowerCase())
+    );
+  };
 
   const initials = (name: string) => {
     return name
@@ -67,43 +77,64 @@ export default function PeoplePage() {
 
           {filteredPeople.length > 0 ? (
             <div className="grid grid-3">
-              {filteredPeople.map((person) => (
-                <article key={person.id} className="card people-card">
-                  <div className="person-visual">
-                    {person.image ? (
-                      <img src={person.image} alt={person.name} loading="lazy" />
-                    ) : (
-                      <div className="avatar-fallback">{initials(person.name)}</div>
-                    )}
-                  </div>
-                  <div className="person-body">
-                    <div className="person-role">
-                      {person.group} · {person.role}
+              {filteredPeople.map((person) => {
+                const personPubs = getPersonPublications(person);
+                return (
+                  <article key={person.id} className="card people-card">
+                    <div className="person-visual">
+                      {person.image ? (
+                        <img src={person.image} alt={person.name} loading="lazy" />
+                      ) : (
+                        <div className="avatar-fallback">{initials(person.name)}</div>
+                      )}
                     </div>
-                    <h3>{person.name}</h3>
-                    <p>{person.bio}</p>
-                    <div className="card-meta">
-                      {String(person.interests || '')
-                        .split(',')
-                        .filter(Boolean)
-                        .slice(0, 3)
-                        .map((x, i) => (
-                          <span key={i} className="tag">
-                            {x.trim()}
-                          </span>
-                        ))}
+                    <div className="person-body">
+                      <div className="person-role">
+                        {person.group} · {person.role}
+                      </div>
+                      <h3>{person.name}</h3>
+                      <p>{person.bio}</p>
+                      <div className="card-meta">
+                        {String(person.interests || '')
+                          .split(',')
+                          .filter(Boolean)
+                          .slice(0, 3)
+                          .map((x, i) => (
+                            <span key={i} className="tag">
+                              {x.trim()}
+                            </span>
+                          ))}
+                      </div>
+                      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <a className="card-link" href={`mailto:${person.email}`}>
+                          {person.email}
+                        </a>
+                        <button
+                          className="button button-small button-outline"
+                          onClick={() => setModalPerson(person)}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                        >
+                          📚 Publications ({personPubs.length})
+                        </button>
+                      </div>
                     </div>
-                    <a className="card-link" href={`mailto:${person.email}`}>
-                      {person.email}
-                    </a>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <div className="empty-state">No matching people found.</div>
           )}
         </section>
+
+        {modalPerson && (
+          <PersonPublicationsModal
+            isOpen={!!modalPerson}
+            onClose={() => setModalPerson(null)}
+            personName={modalPerson.name}
+            publications={getPersonPublications(modalPerson)}
+          />
+        )}
       </div>
     </PageGuard>
   );

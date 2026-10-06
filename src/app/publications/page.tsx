@@ -26,6 +26,7 @@ export default function PublicationsPage() {
   const filteredPublications = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
     return [...data.publications]
+      .filter((p) => p.isLabRelevant !== false)
       .sort((a, b) => Number(b.year) - Number(a.year))
       .filter((p) => {
         const matchesYear = selectedYear === 'All' || p.year === selectedYear;

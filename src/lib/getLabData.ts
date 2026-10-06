@@ -66,7 +66,10 @@ export async function getLabData(): Promise<LabData> {
         bio: p.bio,
         interests: p.interests,
         email: p.email,
-        image: p.image || ''
+        image: p.image || '',
+        scholarUrl: p.scholarUrl || '',
+        orcid: p.orcid || '',
+        dblpId: p.dblpId || ''
       })),
       publications: (publicationsDb as any[]).map((pub: any) => ({
         id: pub.id,
@@ -76,7 +79,11 @@ export async function getLabData(): Promise<LabData> {
         year: pub.year,
         type: pub.type,
         doi: pub.doi || '',
-        featured: pub.featured || false
+        url: pub.url || '',
+        featured: pub.featured || false,
+        isLabRelevant: pub.isLabRelevant ?? false,
+        externalId: pub.externalId || '',
+        personId: pub.personId || ''
       })),
       projects: (projectsDb as any[]).map((proj: any) => ({
         id: proj.id,

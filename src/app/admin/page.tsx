@@ -33,6 +33,8 @@ export default function AdminPage() {
   // Modal State for CRUD
   const [editingItem, setEditingItem] = useState<{ collection: string; id?: string; data?: any } | null>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [curatingPerson, setCuratingPerson] = useState<any>(null);
+  const [syncingPersonId, setSyncingPersonId] = useState<string | null>(null);
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -41,6 +43,35 @@ export default function AdminPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('admin');
+
+  const handleSyncPublications = async (personId: string, scholarUrl: string, personName: string) => {
+    if (!scholarUrl) {
+      toast('Please provide a Google Scholar profile URL for ' + personName);
+      return;
+    }
+    setSyncingPersonId(personId);
+    toast(`Syncing publications from Scholar & CrossRef for ${personName}...`);
+    try {
+      const res = await fetch('/api/publications/fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId, scholarUrl, personName })
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        toast(`Synced ${resData.fetchedCount} publications for ${personName}!`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast(resData.error || 'Failed to fetch publications');
+      }
+    } catch {
+      toast('Error connecting to publication sync service');
+    } finally {
+      setSyncingPersonId(null);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -453,6 +484,7 @@ export default function AdminPage() {
                 <tr>
                   <th>Title / Name</th>
                   <th>Details</th>
+                  {adminSection === 'publications' && <th>Lab Relevant</th>}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -461,10 +493,51 @@ export default function AdminPage() {
                   <tr key={item.id}>
                     <td>
                       <strong>{item.title || item.name}</strong>
+                      {adminSection === 'people' && item.scholarUrl && (
+                        <div>
+                          <small style={{ color: 'var(--muted)' }}>Scholar Profile Linked</small>
+                        </div>
+                      )}
                     </td>
                     <td>{item.role || item.venue || item.status || item.category || item.description || ''}</td>
+                    {adminSection === 'publications' && (
+                      <td>
+                        <button
+                          className={`button button-small ${item.isLabRelevant ? 'button-secondary' : 'button-outline'}`}
+                          style={{
+                            background: item.isLabRelevant ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                            color: item.isLabRelevant ? '#60a5fa' : 'var(--muted)',
+                            borderColor: item.isLabRelevant ? 'rgba(59, 130, 246, 0.4)' : 'var(--line)'
+                          }}
+                          onClick={() => {
+                            updateItem('publications', item.id, { isLabRelevant: !item.isLabRelevant });
+                          }}
+                        >
+                          {item.isLabRelevant ? '✓ Lab Relevant' : '✕ Not Lab Relevant'}
+                        </button>
+                      </td>
+                    )}
                     <td>
-                      <div className="row-actions">
+                      <div className="row-actions" style={{ flexWrap: 'wrap', gap: '4px' }}>
+                        {adminSection === 'people' && (
+                          <>
+                            <button
+                              className="button button-small button-outline"
+                              disabled={syncingPersonId === item.id}
+                              onClick={() => handleSyncPublications(item.id, item.scholarUrl, item.name)}
+                              title="Auto-fetch papers from Google Scholar & CrossRef API"
+                            >
+                              {syncingPersonId === item.id ? 'Syncing...' : '🔄 Sync Pubs'}
+                            </button>
+                            <button
+                              className="button button-small button-secondary"
+                              onClick={() => setCuratingPerson(item)}
+                              title="Select which publications are relevant to the lab"
+                            >
+                              🎯 Curate Pubs
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => setEditingItem({ collection: adminSection, id: item.id, data: item })}
                         >
@@ -733,6 +806,17 @@ export default function AdminPage() {
                   <div className="field"><label>Role</label><input className="input" name="role" defaultValue={editingItem.data?.role || ''} required /></div>
                   <div className="field"><label>Group (e.g. Faculty, Researchers)</label><input className="input" name="group" defaultValue={editingItem.data?.group || 'Researchers'} required /></div>
                   <div className="field"><label>Email</label><input className="input" name="email" type="email" defaultValue={editingItem.data?.email || ''} required /></div>
+                  <div className="field span-2">
+                    <label>Google Scholar Profile URL (Compulsory)</label>
+                    <input
+                      className="input"
+                      name="scholarUrl"
+                      type="url"
+                      placeholder="https://scholar.google.com/citations?user=..."
+                      defaultValue={editingItem.data?.scholarUrl || ''}
+                      required
+                    />
+                  </div>
                   <div className="field span-2"><label>Biography</label><textarea className="textarea" name="bio" defaultValue={editingItem.data?.bio || ''} required /></div>
                   <div className="field span-2"><label>Research Interests</label><input className="input" name="interests" defaultValue={editingItem.data?.interests || ''} /></div>
                   <div className="field span-2"><label>Image URL (Optional)</label><input className="input" name="image" defaultValue={editingItem.data?.image || ''} /></div>
@@ -778,6 +862,95 @@ export default function AdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FOR CURATING LAB PUBLICATIONS PER PERSON */}
+      {curatingPerson && (
+        <div className="modal-backdrop" onClick={() => setCuratingPerson(null)}>
+          <div
+            className="modal"
+            style={{ maxWidth: '850px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">Publication Relevance Curation</span>
+                <h2 style={{ margin: '0.25rem 0 0 0' }}>{curatingPerson.name}</h2>
+                <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8, fontSize: '0.85rem' }}>
+                  Select which publications authored by {curatingPerson.name} should be published on the main /publications page.
+                </p>
+              </div>
+              <button className="icon-button" onClick={() => setCuratingPerson(null)}>
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                className="button button-small button-outline"
+                disabled={syncingPersonId === curatingPerson.id}
+                onClick={() => handleSyncPublications(curatingPerson.id, curatingPerson.scholarUrl, curatingPerson.name)}
+              >
+                {syncingPersonId === curatingPerson.id ? 'Syncing...' : '🔄 Re-Sync Google Scholar & CrossRef'}
+              </button>
+            </div>
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {(() => {
+                const lastName = curatingPerson.name.split(/\s+/).pop() || curatingPerson.name;
+                const personPubs = data.publications.filter(
+                  (p) => p.personId === curatingPerson.id || p.authors.toLowerCase().includes(lastName.toLowerCase())
+                );
+
+                if (personPubs.length === 0) {
+                  return (
+                    <div className="empty-state" style={{ padding: '2rem 1rem' }}>
+                      No publications stored for this researcher yet. Click "Re-Sync Google Scholar & CrossRef" to fetch their papers.
+                    </div>
+                  );
+                }
+
+                return personPubs.map((pub) => (
+                  <div
+                    key={pub.id}
+                    className="card"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      padding: '1rem',
+                      borderColor: pub.isLabRelevant ? 'rgba(59, 130, 246, 0.4)' : 'var(--line)',
+                      background: pub.isLabRelevant ? 'rgba(59, 130, 246, 0.05)' : 'var(--surface)'
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <span className="tag">{pub.type}</span>
+                        <span className="tag">{pub.year}</span>
+                      </div>
+                      <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '0.25rem' }}>
+                        {pub.title}
+                      </strong>
+                      <small style={{ color: 'var(--muted)', display: 'block' }}>{pub.authors} · {pub.venue}</small>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <button
+                        className={`button button-small ${pub.isLabRelevant ? 'button-secondary' : 'button-outline'}`}
+                        onClick={() => {
+                          updateItem('publications', pub.id, { isLabRelevant: !pub.isLabRelevant });
+                        }}
+                      >
+                        {pub.isLabRelevant ? '✓ Lab Relevant' : '+ Mark as Lab Relevant'}
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
           </div>
         </div>
       )}

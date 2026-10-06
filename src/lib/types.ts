@@ -56,6 +56,9 @@ export interface Person {
   interests: string;
   email: string;
   image?: string;
+  scholarUrl?: string;
+  orcid?: string;
+  dblpId?: string;
 }
 
 export interface Publication {
@@ -66,7 +69,11 @@ export interface Publication {
   year: string;
   type: string;
   doi?: string;
+  url?: string;
   featured?: boolean;
+  isLabRelevant?: boolean;
+  externalId?: string;
+  personId?: string;
 }
 
 export interface Project {

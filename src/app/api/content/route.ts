@@ -89,7 +89,10 @@ export async function POST(request: Request) {
             bio: p.bio,
             interests: p.interests,
             email: p.email,
-            image: p.image || ''
+            image: p.image || '',
+            scholarUrl: p.scholarUrl || '',
+            orcid: p.orcid || '',
+            dblpId: p.dblpId || ''
           }
         });
       }
@@ -108,7 +111,11 @@ export async function POST(request: Request) {
             year: pub.year,
             type: pub.type || 'Journal',
             doi: pub.doi || '',
-            featured: pub.featured || false
+            url: pub.url || '',
+            featured: pub.featured || false,
+            isLabRelevant: pub.isLabRelevant ?? false,
+            externalId: pub.externalId || null,
+            personId: pub.personId || null
           }
         });
       }
