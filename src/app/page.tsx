@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { Publication } from '@/lib/types';
+import { HeroVisual } from '@/components/HeroVisual';
 
 export default function HomePage() {
   const { data } = useData();
@@ -45,19 +46,7 @@ export default function HomePage() {
         </div>
 
         <div className="hero-visual" aria-label="Animated edge computing network">
-          <div className="network-orb">
-            <div className="orb-core">EDGE</div>
-            <div className="node">DEVICE</div>
-            <div className="node">UAV</div>
-            <div className="node">CLOUD</div>
-            <div className="node">V2X</div>
-            <span className="connection c1" />
-            <span className="connection c2" />
-            <span className="connection c3" />
-            <span className="connection c4" />
-          </div>
-          <div className="hero-chip a">Adaptive orchestration</div>
-          <div className="hero-chip b">Distributed intelligence</div>
+          <HeroVisual />
         </div>
       </section>
 
