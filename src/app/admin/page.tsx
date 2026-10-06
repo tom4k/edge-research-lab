@@ -35,6 +35,11 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [curatingPerson, setCuratingPerson] = useState<any>(null);
   const [syncingPersonId, setSyncingPersonId] = useState<string | null>(null);
+
+  // Table Filter & Search States
+  const [tableSearch, setTableSearch] = useState('');
+  const [groupFilter, setGroupFilter] = useState('All');
+  const [relevanceFilter, setRelevanceFilter] = useState('All');
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -289,54 +294,94 @@ export default function AdminPage() {
                 <h1>Admin User Management</h1>
               </div>
               <button className="button" onClick={() => setShowAddUserModal(true)}>
-                Add Admin User
+                + Add Admin User
               </button>
             </div>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Username / Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usersList.map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      <strong>{u.name}</strong>
-                      <br />
-                      <small style={{ color: 'var(--muted)' }}>@{u.username}</small>
-                    </td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className={`role-badge ${u.role}`}>
-                        {u.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="row-actions">
-                        <button onClick={() => setEditingUser(u)}>
-                          Edit
-                        </button>
-                        {u.id !== user.id && (
-                          <button
-                            onClick={() => {
-                              if (confirm(`Remove admin account for ${u.name}?`)) {
-                                removeAdminUser(u.id);
-                              }
-                            }}
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+            {(() => {
+              const q = tableSearch.toLowerCase().trim();
+              const filteredUsers = usersList.filter(
+                (u) => !q || `${u.name} ${u.username} ${u.email} ${u.role}`.toLowerCase().includes(q)
+              );
+
+              return (
+                <div className="admin-table-wrapper">
+                  <div className="admin-filter-bar">
+                    <input
+                      className="input"
+                      type="search"
+                      placeholder="Search users by name, username, or email..."
+                      value={tableSearch}
+                      onChange={(e) => setTableSearch(e.target.value)}
+                      style={{ maxWidth: '360px' }}
+                    />
+                    <span style={{ fontSize: '0.86rem', color: 'var(--muted)', fontWeight: 600 }}>
+                      Showing {filteredUsers.length} of {usersList.length} admin accounts
+                    </span>
+                  </div>
+
+                  {filteredUsers.length > 0 ? (
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User Profile</th>
+                          <th>Email Address</th>
+                          <th>Role Permission</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((u) => {
+                          const userInitials = u.name.split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase() || 'AD';
+                          return (
+                            <tr key={u.id}>
+                              <td>
+                                <div className="table-user-cell">
+                                  <div className="table-user-avatar">{userInitials}</div>
+                                  <div>
+                                    <strong style={{ fontSize: '0.95rem', display: 'block' }}>{u.name}</strong>
+                                    <small style={{ color: 'var(--muted)' }}>@{u.username}</small>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ color: 'var(--muted)', fontWeight: 500 }}>{u.email}</td>
+                              <td>
+                                <span className={`role-badge ${u.role}`}>
+                                  {u.role === 'superadmin' ? '🛡️ Super Admin' : '👤 Admin'}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="row-actions">
+                                  <button onClick={() => setEditingUser(u)}>
+                                    ✏️ Edit
+                                  </button>
+                                  {u.id !== user.id && (
+                                    <button
+                                      className="button-danger"
+                                      onClick={() => {
+                                        if (confirm(`Remove admin account for ${u.name}?`)) {
+                                          removeAdminUser(u.id);
+                                        }
+                                      }}
+                                    >
+                                      🗑️ Remove
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="empty-state" style={{ padding: '3rem 1rem' }}>
+                      No admin users match "{tableSearch}".
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -468,96 +513,379 @@ export default function AdminPage() {
           <div>
             <div className="admin-topbar">
               <div>
-                <span className="eyebrow">Collection</span>
+                <span className="eyebrow">Collection Management</span>
                 <h1 style={{ textTransform: 'capitalize' }}>{adminSection}</h1>
               </div>
               <button
                 className="button"
                 onClick={() => setEditingItem({ collection: adminSection, data: {} })}
               >
-                Add {adminSection.slice(0, -1)}
+                + Add {adminSection.slice(0, -1)}
               </button>
             </div>
 
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Title / Name</th>
-                  <th>Details</th>
-                  {adminSection === 'publications' && <th>Lab Relevant</th>}
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data[adminSection as keyof typeof data] as any[]).map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.title || item.name}</strong>
-                      {adminSection === 'people' && item.scholarUrl && (
-                        <div>
-                          <small style={{ color: 'var(--muted)' }}>Scholar Profile Linked</small>
-                        </div>
+            {(() => {
+              const rawItems = (data[adminSection as keyof typeof data] as any[]) || [];
+              const q = tableSearch.toLowerCase().trim();
+
+              const filteredItems = rawItems.filter((item) => {
+                // Text search across common fields
+                const textMatch =
+                  !q ||
+                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.lead || ''} ${item.summary || ''} ${item.bio || ''} ${item.interests || ''}`
+                    .toLowerCase()
+                    .includes(q);
+
+                // Group filter for People
+                if (adminSection === 'people' && groupFilter !== 'All') {
+                  if (item.group !== groupFilter) return false;
+                }
+
+                // Relevance filter for Publications
+                if (adminSection === 'publications' && relevanceFilter !== 'All') {
+                  if (relevanceFilter === 'Lab Relevant' && !item.isLabRelevant) return false;
+                  if (relevanceFilter === 'Non-Lab' && item.isLabRelevant) return false;
+                }
+
+                return textMatch;
+              });
+
+              return (
+                <div className="admin-table-wrapper">
+                  <div className="admin-filter-bar">
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flex: 1, alignItems: 'center' }}>
+                      <input
+                        className="input"
+                        type="search"
+                        placeholder={`Search ${adminSection} by title, author, description...`}
+                        value={tableSearch}
+                        onChange={(e) => setTableSearch(e.target.value)}
+                        style={{ maxWidth: '340px' }}
+                      />
+
+                      {adminSection === 'people' && (
+                        <select
+                          className="select"
+                          value={groupFilter}
+                          onChange={(e) => setGroupFilter(e.target.value)}
+                          style={{ width: '160px' }}
+                        >
+                          <option value="All">All Groups</option>
+                          <option value="Faculty">Faculty</option>
+                          <option value="Researchers">Researchers</option>
+                          <option value="Project Staff">Project Staff</option>
+                          <option value="Students">Students</option>
+                          <option value="Alumni">Alumni</option>
+                        </select>
                       )}
-                    </td>
-                    <td>{item.role || item.venue || item.status || item.category || item.description || ''}</td>
-                    {adminSection === 'publications' && (
-                      <td>
-                        <button
-                          className={`button button-small ${item.isLabRelevant ? 'button-secondary' : 'button-outline'}`}
-                          style={{
-                            background: item.isLabRelevant ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                            color: item.isLabRelevant ? '#60a5fa' : 'var(--muted)',
-                            borderColor: item.isLabRelevant ? 'rgba(59, 130, 246, 0.4)' : 'var(--line)'
-                          }}
-                          onClick={() => {
-                            updateItem('publications', item.id, { isLabRelevant: !item.isLabRelevant });
-                          }}
+
+                      {adminSection === 'publications' && (
+                        <select
+                          className="select"
+                          value={relevanceFilter}
+                          onChange={(e) => setRelevanceFilter(e.target.value)}
+                          style={{ width: '180px' }}
                         >
-                          {item.isLabRelevant ? '✓ Lab Relevant' : '✕ Not Lab Relevant'}
-                        </button>
-                      </td>
-                    )}
-                    <td>
-                      <div className="row-actions" style={{ flexWrap: 'wrap', gap: '4px' }}>
-                        {adminSection === 'people' && (
-                          <>
-                            <button
-                              className="button button-small button-outline"
-                              disabled={syncingPersonId === item.id}
-                              onClick={() => handleSyncPublications(item.id, item.scholarUrl, item.name)}
-                              title="Auto-fetch papers from Google Scholar & CrossRef API"
-                            >
-                              {syncingPersonId === item.id ? 'Syncing...' : '🔄 Sync Pubs'}
-                            </button>
-                            <button
-                              className="button button-small button-secondary"
-                              onClick={() => setCuratingPerson(item)}
-                              title="Select which publications are relevant to the lab"
-                            >
-                              🎯 Curate Pubs
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() => setEditingItem({ collection: adminSection, id: item.id, data: item })}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Delete "${item.title || item.name}"?`)) {
-                              deleteItem(adminSection as any, item.id);
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          <option value="All">All Publications</option>
+                          <option value="Lab Relevant">✓ Lab Relevant Only</option>
+                          <option value="Non-Lab">✕ Non-Lab Papers</option>
+                        </select>
+                      )}
+                    </div>
+
+                    <span style={{ fontSize: '0.86rem', color: 'var(--muted)', fontWeight: 600 }}>
+                      Showing {filteredItems.length} of {rawItems.length} {adminSection}
+                    </span>
+                  </div>
+
+                  {filteredItems.length > 0 ? (
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          {adminSection === 'people' && (
+                            <>
+                              <th>Researcher Profile</th>
+                              <th>Contact & Scholar</th>
+                              <th>Publications</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
+                          {adminSection === 'publications' && (
+                            <>
+                              <th>Publication Title & Type</th>
+                              <th>Authors</th>
+                              <th>Venue & Year</th>
+                              <th>Lab Relevant</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
+                          {adminSection === 'projects' && (
+                            <>
+                              <th>Project Title & Status</th>
+                              <th>Lead & Funding</th>
+                              <th>Timeline & Tags</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
+                          {adminSection === 'news' && (
+                            <>
+                              <th>News Update & Category</th>
+                              <th>Publish Date</th>
+                              <th>Summary</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
+                          {adminSection === 'research' && (
+                            <>
+                              <th>Research Theme</th>
+                              <th>Description</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredItems.map((item) => {
+                          const initials = (name: string) =>
+                            name
+                              .split(/\s+/)
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .map((x) => x[0])
+                              .join('')
+                              .toUpperCase() || 'RL';
+
+                          return (
+                            <tr key={item.id}>
+                              {/* PEOPLE TABLE CELLS */}
+                              {adminSection === 'people' && (
+                                <>
+                                  <td>
+                                    <div className="table-user-cell">
+                                      <div className="table-user-avatar">{initials(item.name)}</div>
+                                      <div>
+                                        <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.name}</strong>
+                                        <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.2rem' }}>
+                                          <span className="tag" style={{ fontSize: '0.72rem' }}>{item.group}</span>
+                                          <small style={{ color: 'var(--muted)' }}>· {item.role}</small>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <a className="card-link" href={`mailto:${item.email}`} style={{ fontSize: '0.85rem' }}>
+                                      {item.email}
+                                    </a>
+                                    <div style={{ marginTop: '0.25rem' }}>
+                                      {item.scholarUrl ? (
+                                        <span className="tag" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', fontSize: '0.7rem' }}>
+                                          ✓ Scholar Linked
+                                        </span>
+                                      ) : (
+                                        <span className="tag" style={{ opacity: 0.6, fontSize: '0.7rem' }}>
+                                          No Scholar Link
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    {(() => {
+                                      const lastName = item.name.split(/\s+/).pop() || item.name;
+                                      const pubCount = data.publications.filter(
+                                        (p) => p.personId === item.id || p.authors.toLowerCase().includes(lastName.toLowerCase())
+                                      ).length;
+                                      return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-start' }}>
+                                          <span className="tag" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
+                                            📚 {pubCount} Papers
+                                          </span>
+                                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                            <button
+                                              className="button button-small button-outline"
+                                              disabled={syncingPersonId === item.id}
+                                              onClick={() => handleSyncPublications(item.id, item.scholarUrl, item.name)}
+                                              style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                                            >
+                                              {syncingPersonId === item.id ? 'Syncing...' : '🔄 Sync'}
+                                            </button>
+                                            <button
+                                              className="button button-small button-secondary"
+                                              onClick={() => setCuratingPerson(item)}
+                                              style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+                                            >
+                                              🎯 Curate
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
+                                  </td>
+                                </>
+                              )}
+
+                              {/* PUBLICATIONS TABLE CELLS */}
+                              {adminSection === 'publications' && (
+                                <>
+                                  <td style={{ maxWidth: '300px' }}>
+                                    <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                                      <span className="tag">{item.type}</span>
+                                      {item.doi && (
+                                        <a
+                                          className="tag"
+                                          href={`https://doi.org/${item.doi}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', textDecoration: 'none' }}
+                                        >
+                                          DOI
+                                        </a>
+                                      )}
+                                    </div>
+                                    <strong style={{ fontSize: '0.95rem', lineHeight: '1.3', display: 'block' }}>
+                                      {item.title}
+                                    </strong>
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>{item.authors}</td>
+                                  <td>
+                                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>{item.venue}</strong>
+                                    <span className="tag" style={{ marginTop: '0.2rem' }}>{item.year}</span>
+                                  </td>
+                                  <td>
+                                    <button
+                                      className={`button button-small ${item.isLabRelevant ? 'button-secondary' : 'button-outline'}`}
+                                      style={{
+                                        background: item.isLabRelevant ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                        color: item.isLabRelevant ? '#60a5fa' : 'var(--muted)',
+                                        borderColor: item.isLabRelevant ? 'rgba(59, 130, 246, 0.4)' : 'var(--line)',
+                                        fontSize: '0.78rem'
+                                      }}
+                                      onClick={() => {
+                                        updateItem('publications', item.id, { isLabRelevant: !item.isLabRelevant });
+                                      }}
+                                    >
+                                      {item.isLabRelevant ? '✓ Lab Relevant' : '+ Mark Relevant'}
+                                    </button>
+                                  </td>
+                                </>
+                              )}
+
+                              {/* PROJECTS TABLE CELLS */}
+                              {adminSection === 'projects' && (
+                                <>
+                                  <td>
+                                    <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '0.25rem' }}>
+                                      {item.title}
+                                    </strong>
+                                    <span
+                                      className="tag"
+                                      style={{
+                                        background: item.status === 'Ongoing' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)',
+                                        color: item.status === 'Ongoing' ? '#34d399' : '#94a3b8'
+                                      }}
+                                    >
+                                      {item.status}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <strong style={{ fontSize: '0.88rem', display: 'block' }}>Lead: {item.lead}</strong>
+                                    <small style={{ color: 'var(--muted)' }}>{item.funding || 'Institutional'}</small>
+                                  </td>
+                                  <td>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                                      {item.start} – {item.end}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                      {(item.tags || []).slice(0, 3).map((t: string, i: number) => (
+                                        <span key={i} className="tag" style={{ fontSize: '0.7rem' }}>
+                                          {t}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </>
+                              )}
+
+                              {/* NEWS TABLE CELLS */}
+                              {adminSection === 'news' && (
+                                <>
+                                  <td>
+                                    <strong style={{ fontSize: '0.95rem', display: 'block', marginBottom: '0.25rem' }}>
+                                      {item.title}
+                                    </strong>
+                                    <span className="tag" style={{ fontSize: '0.72rem' }}>{item.category}</span>
+                                  </td>
+                                  <td style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--muted)' }}>
+                                    {item.date}
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem', maxWidth: '320px' }}>
+                                    {item.summary}
+                                  </td>
+                                </>
+                              )}
+
+                              {/* RESEARCH TABLE CELLS */}
+                              {adminSection === 'research' && (
+                                <>
+                                  <td>
+                                    <div className="table-user-cell">
+                                      <div className="table-user-avatar" style={{ borderRadius: '8px', fontSize: '0.8rem' }}>
+                                        {item.icon}
+                                      </div>
+                                      <div>
+                                        <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.title}</strong>
+                                        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.2rem' }}>
+                                          {(item.tags || []).slice(0, 3).map((t: string, i: number) => (
+                                            <span key={i} className="tag" style={{ fontSize: '0.7rem' }}>
+                                              {t}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem', maxWidth: '360px' }}>
+                                    {item.description}
+                                  </td>
+                                </>
+                              )}
+
+                              {/* COMMON ACTIONS COLUMN */}
+                              <td>
+                                <div className="row-actions">
+                                  <button
+                                    onClick={() => setEditingItem({ collection: adminSection, id: item.id, data: item })}
+                                  >
+                                    ✏️ Edit
+                                  </button>
+                                  <button
+                                    className="button-danger"
+                                    onClick={() => {
+                                      if (confirm(`Delete "${item.title || item.name}"?`)) {
+                                        deleteItem(adminSection as any, item.id);
+                                      }
+                                    }}
+                                  >
+                                    🗑️ Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="empty-state" style={{ padding: '3rem 1rem' }}>
+                      No {adminSection} items match your search.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
