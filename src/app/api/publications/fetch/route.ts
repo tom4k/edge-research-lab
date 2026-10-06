@@ -10,11 +10,41 @@ function extractScholarUserId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+// Strict author matching helper to prevent false positive paper matches
+function isAuthorMatch(authorListString: string, personName: string): boolean {
+  if (!authorListString || !personName) return true; // fallback if missing
+  const nameParts = personName.trim().split(/\s+/).filter(Boolean);
+  if (nameParts.length === 0) return true;
+  
+  const lastName = nameParts[nameParts.length - 1].toLowerCase();
+  const firstName = nameParts[0].toLowerCase();
+  const firstInitial = firstName[0];
+
+  const authorsLower = authorListString.toLowerCase();
+
+  // Author list MUST contain person's last name
+  if (!authorsLower.includes(lastName)) {
+    return false;
+  }
+
+  // If person has a first name/initial, check for first name or initial match
+  if (nameParts.length > 1) {
+    const hasFirstName = authorsLower.includes(firstName);
+    const hasInitial = authorsLower.includes(`${firstInitial}.`) || 
+                       authorsLower.includes(` ${firstInitial} `) ||
+                       authorsLower.includes(`${firstInitial} `) ||
+                       authorsLower.includes(`, ${firstInitial}`);
+    return hasFirstName || hasInitial;
+  }
+
+  return true;
+}
+
 // Helper to query CrossRef API for clean metadata
 async function fetchCrossRefPublications(authorName: string) {
   try {
     const query = encodeURIComponent(authorName);
-    const res = await fetch(`https://api.crossref.org/works?query.author=${query}&rows=15`, {
+    const res = await fetch(`https://api.crossref.org/works?query.author=${query}&rows=20`, {
       headers: {
         'User-Agent': 'EdgeSysResearchLab/1.0 (mailto:edgesys@example.edu)'
       }
@@ -25,12 +55,19 @@ async function fetchCrossRefPublications(authorName: string) {
     const json = await res.json();
     const items = json?.message?.items || [];
 
-    return items.map((item: any) => {
+    const results: any[] = [];
+
+    for (const item of items) {
       const title = item.title && item.title.length > 0 ? item.title[0] : 'Untitled Work';
       const authors = (item.author || [])
         .map((a: any) => `${a.given || ''} ${a.family || ''}`.trim())
         .filter(Boolean)
         .join(', ') || authorName;
+
+      // Strict verification: skip if author name does NOT match target researcher
+      if (!isAuthorMatch(authors, authorName)) {
+        continue;
+      }
       
       const venue = (item['container-title'] && item['container-title'].length > 0)
         ? item['container-title'][0]
@@ -49,7 +86,7 @@ async function fetchCrossRefPublications(authorName: string) {
       const doi = item.DOI || '';
       const url = item.URL || (doi ? `https://doi.org/${doi}` : '');
 
-      return {
+      results.push({
         title,
         authors,
         venue,
@@ -58,15 +95,17 @@ async function fetchCrossRefPublications(authorName: string) {
         doi,
         url,
         externalId: doi ? `doi:${doi}` : `crossref:${item.id || title.substring(0, 30)}`
-      };
-    });
+      });
+    }
+
+    return results;
   } catch (error) {
     console.warn('CrossRef API fetch warning:', error);
     return [];
   }
 }
 
-// Helper to parse publications from Google Scholar Profile
+// Helper to parse publications directly from Google Scholar Profile
 async function fetchScholarPublications(scholarUserId: string, authorName: string) {
   try {
     const url = `https://scholar.google.com/citations?user=${scholarUserId}&cstart=0&pagesize=100&hl=en`;
@@ -134,23 +173,38 @@ export async function POST(request: Request) {
     }
 
     const scholarUserId = extractScholarUserId(scholarUrl);
-    let fetchedPubs: any[] = [];
+    let scholarPubs: any[] = [];
 
-    // 1. Try Google Scholar if valid URL provided
+    // 1. Primary Source: Google Scholar Profile page (100% accurate to the profile owner)
     if (scholarUserId) {
-      fetchedPubs = await fetchScholarPublications(scholarUserId, personName);
+      scholarPubs = await fetchScholarPublications(scholarUserId, personName);
     }
 
-    // 2. Query CrossRef API (always or as enrichment)
+    // 2. Query CrossRef with strict author name verification
     const crossRefPubs = await fetchCrossRefPublications(personName);
 
-    // Combine & deduplicate publications by normalized title
+    // Combine: If Google Scholar yielded results, prioritize Google Scholar papers
+    // and use CrossRef items to enrich DOI & venue metadata or add verified papers.
     const titleMap = new Map<string, any>();
 
-    for (const pub of [...fetchedPubs, ...crossRefPubs]) {
+    // Add Google Scholar publications first (Ground truth for this user ID)
+    for (const pub of scholarPubs) {
       const normTitle = pub.title.toLowerCase().trim().replace(/[^\w\s]/g, '');
-      if (!titleMap.has(normTitle)) {
-        titleMap.set(normTitle, pub);
+      titleMap.set(normTitle, pub);
+    }
+
+    // Add/enrich with CrossRef publications strictly if author matches
+    for (const crPub of crossRefPubs) {
+      const normTitle = crPub.title.toLowerCase().trim().replace(/[^\w\s]/g, '');
+      if (titleMap.has(normTitle)) {
+        // Enrich existing Google Scholar entry with DOI and full URL from CrossRef
+        const existing = titleMap.get(normTitle);
+        if (crPub.doi && !existing.doi) existing.doi = crPub.doi;
+        if (crPub.url && !existing.url) existing.url = crPub.url;
+        if (crPub.venue && crPub.venue !== 'Scholarly Publication') existing.venue = crPub.venue;
+      } else if (scholarPubs.length === 0) {
+        // If Google Scholar returned no items, use verified CrossRef items
+        titleMap.set(normTitle, crPub);
       }
     }
 
