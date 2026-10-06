@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Publication } from '@/lib/types';
 import { useToast } from '@/context/ToastContext';
 
@@ -20,6 +21,23 @@ export function PersonPublicationsModal({
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('All');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent background scrolling while modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   const years = useMemo(() => {
     const list = Array.from(new Set(publications.map((p) => p.year))).sort().reverse();
@@ -46,13 +64,36 @@ export function PersonPublicationsModal({
     });
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
+  const modalContent = (
+    <div
+      className="modal-backdrop"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 99999,
+        background: 'rgba(2, 8, 20, 0.75)',
+        backdropFilter: 'blur(8px)',
+        display: 'grid',
+        placeItems: 'center',
+        padding: '24px'
+      }}
+    >
       <div
         className="modal"
-        style={{ width: 'min(820px, 95%)', maxHeight: '85vh', overflowY: 'auto' }}
+        style={{
+          width: 'min(820px, 95%)',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          zIndex: 100000
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header" style={{ marginBottom: '1.5rem', alignItems: 'flex-start' }}>
@@ -148,4 +189,6 @@ export function PersonPublicationsModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

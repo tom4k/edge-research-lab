@@ -868,7 +868,25 @@ export default function AdminPage() {
 
       {/* MODAL FOR CURATING LAB PUBLICATIONS PER PERSON */}
       {curatingPerson && (
-        <div className="modal-backdrop" onClick={() => setCuratingPerson(null)}>
+        <div
+          className="modal-backdrop"
+          onClick={() => setCuratingPerson(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 99999,
+            background: 'rgba(2, 8, 20, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: '24px'
+          }}
+        >
           <div
             className="modal"
             style={{ maxWidth: '850px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}
