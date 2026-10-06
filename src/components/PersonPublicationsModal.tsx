@@ -49,13 +49,13 @@ export function PersonPublicationsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-content"
-        style={{ maxWidth: '800px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}
+        className="modal"
+        style={{ width: 'min(820px, 95%)', maxHeight: '85vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div className="modal-header" style={{ marginBottom: '1.5rem', alignItems: 'flex-start' }}>
           <div>
             <span className="eyebrow">Author Publications</span>
             <h2 style={{ margin: '0.25rem 0 0 0' }}>{personName}</h2>
@@ -63,8 +63,8 @@ export function PersonPublicationsModal({
               Showing {filtered.length} of {publications.length} total publications
             </p>
           </div>
-          <button className="button button-small button-outline" onClick={onClose}>
-            ✕ Close
+          <button className="icon-button" onClick={onClose} style={{ fontSize: '1.25rem' }}>
+            ×
           </button>
         </div>
 
