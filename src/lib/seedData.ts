@@ -45,10 +45,10 @@ export const seedData: LabData = {
     }
   },
   stats: [
-    { value: '48+', label: 'Peer-reviewed publications' },
-    { value: '12', label: 'Active researchers' },
-    { value: '9', label: 'Research projects' },
-    { value: '6', label: 'Academic and industry partners' }
+    { value: '4+', label: 'Peer-reviewed publications' },
+    { value: '5', label: 'Active researchers' },
+    { value: '3', label: 'Research projects' },
+    { value: '6', label: 'Research focus areas' }
   ],
   research: [
     { id: 'res-1', title: 'Edge Intelligence', icon: 'EI', description: 'Learning, inference, and decision-making close to data sources under latency, energy, and resource constraints.', tags: ['TinyML', 'Federated Learning', 'Edge AI'] },

@@ -46,10 +46,10 @@ export async function getLabData(): Promise<LabData> {
         activePages
       },
       stats: [
-        { value: `${publicationsDb.length}+`, label: 'Peer-reviewed publications' },
-        { value: `${peopleDb.length}`, label: 'Active researchers' },
+        { value: `${publicationsDb.length > 0 ? publicationsDb.length + '+' : '0'}`, label: 'Peer-reviewed publications' },
+        { value: `${peopleDb.filter((p: any) => p.group !== 'Alumni').length}`, label: 'Active researchers' },
         { value: `${projectsDb.length}`, label: 'Research projects' },
-        { value: '6', label: 'Academic and industry partners' }
+        { value: `${researchDb.length}`, label: 'Research focus areas' }
       ],
       research: (researchDb as any[]).map((r: any) => ({
         id: r.id,

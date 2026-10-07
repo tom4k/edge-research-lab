@@ -32,6 +32,32 @@ export default function HomePage() {
     );
   };
 
+  const pubCount = data.publications ? data.publications.length : 0;
+  const activeResearchersCount = data.people
+    ? data.people.filter((p) => p.group !== 'Alumni').length
+    : 0;
+  const projectCount = data.projects ? data.projects.length : 0;
+  const researchAreaCount = data.research ? data.research.length : 0;
+
+  const displayStats = [
+    {
+      value: pubCount > 0 ? `${pubCount}+` : '0',
+      label: 'Peer-reviewed publications'
+    },
+    {
+      value: `${activeResearchersCount}`,
+      label: 'Active researchers'
+    },
+    {
+      value: `${projectCount}`,
+      label: 'Research projects'
+    },
+    {
+      value: `${researchAreaCount}`,
+      label: 'Research focus areas'
+    }
+  ];
+
   return (
     <div className="page">
       <section className="hero">
@@ -59,7 +85,7 @@ export default function HomePage() {
 
       <section className="section section-tight">
         <div className="stats-grid">
-          {data.stats.map((stat, idx) => (
+          {displayStats.map((stat, idx) => (
             <div key={idx} className="stat-card">
               <strong>{stat.value}</strong>
               <span>{stat.label}</span>
