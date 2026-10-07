@@ -20,18 +20,24 @@ export default function HomePage() {
     });
   };
 
+  const renderHeroTitle = (text?: string) => {
+    const title = text || 'Building intelligence at the edge of the network.';
+    const parts = title.split(/(edge)/i);
+    return parts.map((part, index) =>
+      part.toLowerCase() === 'edge' ? (
+        <span key={index}>{part}</span>
+      ) : (
+        part
+      )
+    );
+  };
+
   return (
     <div className="page">
       <section className="hero">
         <div className="hero-copy" style={{ maxWidth: '960px' }}>
           <span className="eyebrow">{s.subtitle || 'Intelligent Distributed Computing'}</span>
-          <h1>
-            {s.heroTitle ? (
-              s.heroTitle
-            ) : (
-              <>Building intelligence at the <span>edge</span> of the network.</>
-            )}
-          </h1>
+          <h1>{renderHeroTitle(s.heroTitle)}</h1>
           <p>{s.heroDescription}</p>
 
           <div className="hero-actions">
