@@ -100,9 +100,6 @@ export const SiteHeader: React.FC = () => {
             <path d="M20.7 14.1A8.3 8.3 0 0 1 9.9 3.3 8.7 8.7 0 1 0 20.7 14Z" />
           </svg>
         </button>
-        <Link className="button button-small button-outline" href="/admin">
-          Admin
-        </Link>
       </div>
     </header>
   );

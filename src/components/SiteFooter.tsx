@@ -51,8 +51,7 @@ export const SiteFooter: React.FC = () => {
       </div>
 
       <div>
-        <h3>Administration</h3>
-        <Link href="/admin">Open dashboard</Link>
+        <h3>Settings</h3>
         <button
           className="text-button"
           onClick={() => {

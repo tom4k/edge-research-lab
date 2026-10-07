@@ -36,9 +36,6 @@ export const PageGuard: React.FC<PageGuardProps> = ({ pageKey, title, children }
               <Link href="/" className="button">
                 Return Home
               </Link>
-              <Link href="/admin" className="button button-secondary">
-                Admin Console
-              </Link>
             </div>
           </div>
         </section>
