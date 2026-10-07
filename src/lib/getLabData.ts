@@ -46,7 +46,14 @@ export async function getLabData(): Promise<LabData> {
         activePages
       },
       stats: [
-        { value: `${publicationsDb.length > 0 ? publicationsDb.length + '+' : '0'}`, label: 'Peer-reviewed publications' },
+        {
+          value: `${
+            publicationsDb.filter((p: any) => p.isLabRelevant !== false).length > 0
+              ? publicationsDb.filter((p: any) => p.isLabRelevant !== false).length + '+'
+              : '0'
+          }`,
+          label: 'Peer-reviewed publications'
+        },
         { value: `${peopleDb.filter((p: any) => p.group !== 'Alumni').length}`, label: 'Active researchers' },
         { value: `${projectsDb.length}`, label: 'Research projects' },
         { value: `${researchDb.length}`, label: 'Research focus areas' }

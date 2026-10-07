@@ -230,8 +230,8 @@ export default function AdminPage() {
                 <span>People</span>
               </div>
               <div className="stat-card">
-                <strong>{data.publications.length}</strong>
-                <span>Publications</span>
+                <strong>{data.publications.filter((p) => p.isLabRelevant !== false).length}</strong>
+                <span>Lab Relevant Publications</span>
               </div>
               <div className="stat-card">
                 <strong>{data.projects.length}</strong>

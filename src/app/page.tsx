@@ -32,7 +32,9 @@ export default function HomePage() {
     );
   };
 
-  const pubCount = data.publications ? data.publications.length : 0;
+  const pubCount = data.publications
+    ? data.publications.filter((p) => p.isLabRelevant !== false).length
+    : 0;
   const activeResearchersCount = data.people
     ? data.people.filter((p) => p.group !== 'Alumni').length
     : 0;
