@@ -4,8 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 
+import { usePathname } from 'next/navigation';
+
 export const SiteFooter: React.FC = () => {
+  const pathname = usePathname();
   const { data, resetDemoData } = useData();
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
   const s = data.settings;
   const active = s.activePages || {
     research: true,

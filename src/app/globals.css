@@ -232,8 +232,8 @@ main { min-height: 70vh; overflow: clip; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 /* Admin Console Styles */
-.admin-shell { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - var(--header-height)); }
-.admin-sidebar { padding: 30px 20px; background: var(--navy); color: white; position: sticky; top: var(--header-height); height: calc(100vh - var(--header-height)); overflow-y: auto; }
+.admin-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.admin-sidebar { padding: 30px 20px; background: var(--navy); color: white; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .admin-sidebar h2 { margin: 0 0 16px; }
 .admin-user-profile { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: rgba(255,255,255,.07); border-radius: 12px; margin-bottom: 20px; }
 .admin-user-profile strong { color: white; font-size: .92rem; }

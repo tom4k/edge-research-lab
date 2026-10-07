@@ -12,6 +12,9 @@ export const SiteHeader: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const s = data.settings;
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
   const activePages = s.activePages || {
     research: true,
     people: true,
