@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: 'EdgeSys Research Lab — research in edge, fog, distributed and intelligent computing.'
 };
 
+import { EdgeMeshCanvas } from '@/components/EdgeMeshCanvas';
+
 export default async function RootLayout({
   children
 }: {
@@ -27,6 +29,7 @@ export default async function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
+        <EdgeMeshCanvas />
         <ToastProvider>
           <AuthProvider>
             <DataProvider initialData={initialData}>

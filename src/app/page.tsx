@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { Publication } from '@/lib/types';
-import { HeroVisual } from '@/components/HeroVisual';
 
 export default function HomePage() {
   const { data } = useData();
@@ -23,30 +22,69 @@ export default function HomePage() {
 
   return (
     <div className="page">
-      <section className="hero">
-        <div className="hero-copy">
-          <span className="eyebrow">{s.subtitle}</span>
+      <section className="hero-section-v2">
+        <div className="hero-badge-bar">
+          <span className="live-dot" />
+          <span>LIVE EDGE NETWORK: Sub-5ms Orchestration · Real-World UAV & V2X Testbeds</span>
+        </div>
+
+        <div className="hero-main-header">
+          <span className="eyebrow">{s.subtitle || 'Research Lab'}</span>
           <h1>
-            Building intelligence at the <span>edge</span> of the network.
+            {s.heroTitle ? (
+              s.heroTitle
+            ) : (
+              <>Building intelligence at the <span>edge</span> of the network.</>
+            )}
           </h1>
           <p>{s.heroDescription}</p>
+
           <div className="hero-actions">
             <Link className="button" href="/research">
-              Explore our research
+              Explore Our Research →
             </Link>
             <Link className="button button-secondary" href="/publications">
-              View publications
+              View Publications 📚
             </Link>
-          </div>
-          <div className="hero-note">
-            <span>Low-latency systems</span>
-            <span>Resource-efficient intelligence</span>
-            <span>Real-world testbeds</span>
           </div>
         </div>
 
-        <div className="hero-visual" aria-label="Animated edge computing network">
-          <HeroVisual />
+        <div className="hero-pillars-grid">
+          <Link href="/research" className="hero-pillar-card">
+            <div className="pillar-header">
+              <span className="pillar-num">01</span>
+              <span className="pillar-icon">⚡</span>
+            </div>
+            <div>
+              <h3>Edge Intelligence & TinyML</h3>
+              <p>Learning, inference, and decision-making close to data sources under extreme latency & resource constraints.</p>
+            </div>
+            <span className="pillar-link">Explore research →</span>
+          </Link>
+
+          <Link href="/research" className="hero-pillar-card">
+            <div className="pillar-header">
+              <span className="pillar-num">02</span>
+              <span className="pillar-icon">🛸</span>
+            </div>
+            <div>
+              <h3>Vehicular & UAV Edge</h3>
+              <p>Low-latency service provisioning and dynamic coverage for connected mobility and airborne infrastructure.</p>
+            </div>
+            <span className="pillar-link">Explore research →</span>
+          </Link>
+
+          <Link href="/research" className="hero-pillar-card">
+            <div className="pillar-header">
+              <span className="pillar-num">03</span>
+              <span className="pillar-icon">🌐</span>
+            </div>
+            <div>
+              <h3>Cloud–Edge Systems</h3>
+              <p>End-to-end architectures coordinating cloud analytics with responsive, privacy-aware distributed services.</p>
+            </div>
+            <span className="pillar-link">Explore research →</span>
+          </Link>
         </div>
       </section>
 
