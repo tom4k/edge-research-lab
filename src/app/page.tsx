@@ -22,14 +22,9 @@ export default function HomePage() {
 
   return (
     <div className="page">
-      <section className="hero-section-v2">
-        <div className="hero-badge-bar">
-          <span className="live-dot" />
-          <span>LIVE EDGE NETWORK: Sub-5ms Orchestration · Real-World UAV & V2X Testbeds</span>
-        </div>
-
-        <div className="hero-main-header">
-          <span className="eyebrow">{s.subtitle || 'Research Lab'}</span>
+      <section className="hero">
+        <div className="hero-copy" style={{ maxWidth: '960px' }}>
+          <span className="eyebrow">{s.subtitle || 'Intelligent Distributed Computing'}</span>
           <h1>
             {s.heroTitle ? (
               s.heroTitle
@@ -47,44 +42,12 @@ export default function HomePage() {
               View Publications 📚
             </Link>
           </div>
-        </div>
 
-        <div className="hero-pillars-grid">
-          <Link href="/research" className="hero-pillar-card">
-            <div className="pillar-header">
-              <span className="pillar-num">01</span>
-              <span className="pillar-icon">⚡</span>
-            </div>
-            <div>
-              <h3>Edge Intelligence & TinyML</h3>
-              <p>Learning, inference, and decision-making close to data sources under extreme latency & resource constraints.</p>
-            </div>
-            <span className="pillar-link">Explore research →</span>
-          </Link>
-
-          <Link href="/research" className="hero-pillar-card">
-            <div className="pillar-header">
-              <span className="pillar-num">02</span>
-              <span className="pillar-icon">🛸</span>
-            </div>
-            <div>
-              <h3>Vehicular & UAV Edge</h3>
-              <p>Low-latency service provisioning and dynamic coverage for connected mobility and airborne infrastructure.</p>
-            </div>
-            <span className="pillar-link">Explore research →</span>
-          </Link>
-
-          <Link href="/research" className="hero-pillar-card">
-            <div className="pillar-header">
-              <span className="pillar-num">03</span>
-              <span className="pillar-icon">🌐</span>
-            </div>
-            <div>
-              <h3>Cloud–Edge Systems</h3>
-              <p>End-to-end architectures coordinating cloud analytics with responsive, privacy-aware distributed services.</p>
-            </div>
-            <span className="pillar-link">Explore research →</span>
-          </Link>
+          <div className="hero-note">
+            <span>Low-latency systems</span>
+            <span>Resource-efficient intelligence</span>
+            <span>Real-world testbeds</span>
+          </div>
         </div>
       </section>
 
