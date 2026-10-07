@@ -56,8 +56,9 @@ export async function getLabData(): Promise<LabData> {
         },
         { value: `${peopleDb.filter((p: any) => p.group !== 'Alumni').length}`, label: 'Active researchers' },
         { value: `${projectsDb.length}`, label: 'Research projects' },
-        { value: `${researchDb.length}`, label: 'Research focus areas' }
+        { value: `${seedData.patents.length}`, label: 'Patents' }
       ],
+      patents: seedData.patents,
       research: (researchDb as any[]).map((r: any) => ({
         id: r.id,
         title: r.title,

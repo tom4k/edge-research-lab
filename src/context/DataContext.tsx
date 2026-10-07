@@ -12,16 +12,16 @@ interface DataContextType {
   saveData: (message?: string) => void;
   updateSettings: (settings: Partial<LabSettings>) => void;
   togglePageActive: (pageKey: keyof PageVisibilityMap) => void;
-  addItem: <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+  addItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
     collection: K,
     item: Omit<LabData[K][number], 'id'>
   ) => void;
-  updateItem: <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+  updateItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
     collection: K,
     id: string,
     updated: Partial<LabData[K][number]>
   ) => void;
-  deleteItem: <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+  deleteItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
     collection: K,
     id: string
   ) => void;
@@ -63,6 +63,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
           const content = resData.data;
           if (!content.settings.activePages) {
             content.settings.activePages = { ...seedData.settings.activePages };
+          }
+          if (!content.patents) {
+            content.patents = [...seedData.patents];
           }
           setData(content);
           try {
@@ -145,13 +148,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const addItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
       collection: K,
       item: Omit<LabData[K][number], 'id'>
     ) => {
       const id = `id-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
       const newItem = { ...item, id } as LabData[K][number];
-      const updatedList = [...data[collection], newItem];
+      const updatedList = [...(data[collection] || []), newItem];
       const updatedData = { ...data, [collection]: updatedList };
       persist(updatedData, 'Item added successfully');
     },
@@ -159,12 +162,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const updateItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
       collection: K,
       id: string,
       updatedFields: Partial<LabData[K][number]>
     ) => {
-      const updatedList = data[collection].map((item) =>
+      const updatedList = (data[collection] || []).map((item) =>
         item.id === id ? { ...item, ...updatedFields } : item
       );
       const updatedData = { ...data, [collection]: updatedList };
@@ -174,11 +177,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const deleteItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'projects' | 'news'>(
+    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
       collection: K,
       id: string
     ) => {
-      const updatedList = data[collection].filter((item) => item.id !== id);
+      const updatedList = (data[collection] || []).filter((item) => item.id !== id);
       const updatedData = { ...data, [collection]: updatedList };
       persist(updatedData, 'Item deleted');
     },

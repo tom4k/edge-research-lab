@@ -45,6 +45,7 @@ export const SiteFooter: React.FC = () => {
         <h3>Explore</h3>
         {active.research && <Link href="/research">Research areas</Link>}
         {active.publications && <Link href="/publications">Publications</Link>}
+        {active.patents !== false && <Link href="/patents">Patents</Link>}
         {active.projects && <Link href="/projects">Projects</Link>}
         {active.people && <Link href="/people">People</Link>}
         {active.news && <Link href="/news">News & Events</Link>}

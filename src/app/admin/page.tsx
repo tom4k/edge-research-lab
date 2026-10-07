@@ -15,7 +15,7 @@ export default function AdminPage() {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
-  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'projects' | 'news' | 'data'>('dashboard');
+  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news' | 'data'>('dashboard');
 
   const themePresets = [
     { id: 'cyber-blue', name: 'Cyber Edge Blue (Default)', primary: '#0d63ff', accent: '#13c8c2', navy: '#07152f' },
@@ -196,6 +196,9 @@ export default function AdminPage() {
           <button className={adminSection === 'publications' ? 'active' : ''} onClick={() => setAdminSection('publications')}>
             Publications
           </button>
+          <button className={adminSection === 'patents' ? 'active' : ''} onClick={() => setAdminSection('patents')}>
+            Patents
+          </button>
           <button className={adminSection === 'projects' ? 'active' : ''} onClick={() => setAdminSection('projects')}>
             Projects
           </button>
@@ -234,12 +237,12 @@ export default function AdminPage() {
                 <span>Lab Relevant Publications</span>
               </div>
               <div className="stat-card">
-                <strong>{data.projects.length}</strong>
-                <span>Projects</span>
+                <strong>{(data.patents || []).length}</strong>
+                <span>Patents</span>
               </div>
               <div className="stat-card">
-                <strong>{data.news.length}</strong>
-                <span>News Items</span>
+                <strong>{data.projects.length}</strong>
+                <span>Projects</span>
               </div>
             </div>
             <div className="admin-panel" style={{ marginTop: '24px' }}>

@@ -39,6 +39,7 @@ export const seedData: LabData = {
       research: true,
       people: true,
       publications: true,
+      patents: true,
       projects: true,
       news: true,
       contact: true
@@ -48,7 +49,7 @@ export const seedData: LabData = {
     { value: '4+', label: 'Peer-reviewed publications' },
     { value: '5', label: 'Active researchers' },
     { value: '3', label: 'Research projects' },
-    { value: '6', label: 'Research focus areas' }
+    { value: '3', label: 'Patents' }
   ],
   research: [
     { id: 'res-1', title: 'Edge Intelligence', icon: 'EI', description: 'Learning, inference, and decision-making close to data sources under latency, energy, and resource constraints.', tags: ['TinyML', 'Federated Learning', 'Edge AI'] },
@@ -71,6 +72,41 @@ export const seedData: LabData = {
     { id: 'pub-2', title: 'Adaptive Service Placement for Heterogeneous Edge Environments using Reinforcement Learning', authors: 'N. Thomas, A. Rao', venue: 'International Conference on Distributed Computing Systems', year: '2025', type: 'Conference', doi: '10.0000/example.2025.001', featured: true, isLabRelevant: true, personId: 'ppl-3' },
     { id: 'pub-3', title: 'Workload-Aware Orchestration across Cloud and Edge Resources', authors: 'R. Das, M. Iyer, A. Rao', venue: 'Future Generation Computer Systems', year: '2025', type: 'Journal', doi: '10.0000/example.2025.002', featured: false, isLabRelevant: true, personId: 'ppl-4' },
     { id: 'pub-4', title: 'Energy-Efficient Inference on Resource-Constrained Edge Devices', authors: 'M. Iyer, N. Thomas', venue: 'IEEE Edge Computing Workshop', year: '2024', type: 'Conference', doi: '', featured: false, isLabRelevant: true, personId: 'ppl-5' }
+  ],
+  patents: [
+    {
+      id: 'pat-1',
+      title: 'Dynamic Resource Allocation and Adaptive Task Migration System for Mobile Edge Nodes',
+      inventors: 'Dr. Ananya Rao, Arjun Menon',
+      patentNumber: 'US 11,842,109 B2',
+      jurisdiction: 'United States Patent and Trademark Office (USPTO)',
+      year: '2025',
+      status: 'Granted',
+      summary: 'A method and system for dynamic workload partitioning and low-latency task migration across heterogeneous mobile edge servers.',
+      url: 'https://patents.google.com'
+    },
+    {
+      id: 'pat-2',
+      title: 'Ultra-Low-Latency Multi-UAV Cooperative Edge Computing Infrastructure and Protocol',
+      inventors: 'Dr. Ananya Rao, Nisha Thomas, Rahul Das',
+      patentNumber: 'IN 202541012345 A',
+      jurisdiction: 'Indian Patent Office (IPO)',
+      year: '2025',
+      status: 'Published',
+      summary: 'An aerial edge computing framework utilizing autonomous UAV swarms for dynamic coverage and high-throughput data processing.',
+      url: 'https://ipindia.gov.in'
+    },
+    {
+      id: 'pat-3',
+      title: 'Energy-Aware Distributed Model Partitioning for Resource-Constrained TinyML Devices',
+      inventors: 'Meera Iyer, Dr. Ananya Rao',
+      patentNumber: 'US 12,019,542 B1',
+      jurisdiction: 'United States Patent and Trademark Office (USPTO)',
+      year: '2026',
+      status: 'Granted',
+      summary: 'A adaptive neural network pruning and layer-wise offloading mechanism tailored for battery-operated micro-edge devices.',
+      url: 'https://patents.google.com'
+    }
   ],
   projects: [
     { id: 'proj-1', title: 'Lifetime-Aware UAV Edge Orchestration', summary: 'Dynamic deployment and migration strategies for aerial edge servers under finite energy and mobility constraints.', status: 'Ongoing', lead: 'Dr. Ananya Rao', funding: 'Institutional Research Grant', start: '2025', end: '2027', tags: ['UAV', 'VEC', 'Optimization'] },

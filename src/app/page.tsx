@@ -39,7 +39,7 @@ export default function HomePage() {
     ? data.people.filter((p) => p.group !== 'Alumni').length
     : 0;
   const projectCount = data.projects ? data.projects.length : 0;
-  const researchAreaCount = data.research ? data.research.length : 0;
+  const patentCount = data.patents ? data.patents.length : 0;
 
   const displayStats = [
     {
@@ -55,8 +55,8 @@ export default function HomePage() {
       label: 'Research projects'
     },
     {
-      value: `${researchAreaCount}`,
-      label: 'Research focus areas'
+      value: `${patentCount}`,
+      label: 'Patents'
     }
   ];
 

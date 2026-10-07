@@ -13,6 +13,7 @@ export interface PageVisibilityMap {
   research: boolean;
   people: boolean;
   publications: boolean;
+  patents?: boolean;
   projects: boolean;
   news: boolean;
   contact: boolean;
@@ -76,6 +77,18 @@ export interface Publication {
   personId?: string;
 }
 
+export interface Patent {
+  id: string;
+  title: string;
+  inventors: string;
+  patentNumber: string;
+  jurisdiction: string;
+  year: string;
+  status: 'Granted' | 'Filed' | 'Published' | 'Pending';
+  summary?: string;
+  url?: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -102,6 +115,7 @@ export interface LabData {
   research: ResearchArea[];
   people: Person[];
   publications: Publication[];
+  patents: Patent[];
   projects: Project[];
   news: NewsItem[];
 }
