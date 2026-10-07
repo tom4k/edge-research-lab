@@ -106,9 +106,9 @@ export default function AdminPage() {
     return (
       <div className="page">
         <div className="login-card">
-          <span className="eyebrow">Neon Auth & JWT</span>
+          <span className="eyebrow">Authentication</span>
           <h1>Content Dashboard</h1>
-          <p>Sign in with your Neon Auth admin credentials to manage the lab console.</p>
+          <p>Sign in with your admin credentials to manage the lab console.</p>
           <form onSubmit={handleLogin}>
             <div className="field">
               <label htmlFor="admin-user">Username</label>
@@ -134,7 +134,7 @@ export default function AdminPage() {
               />
             </div>
             <button className="button" type="submit">
-              Sign in with Neon Auth
+              Sign In
             </button>
             <div className="credentials-note">
               <strong>Super Admin:</strong> superadmin / super123!
