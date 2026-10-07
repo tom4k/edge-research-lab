@@ -2,26 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 
-interface ParticleNode {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  pulsePhase: number;
-  pulseSpeed: number;
-  color: string;
-  label?: string;
-}
-
-interface DataPacket {
-  fromNode: number;
-  toNode: number;
-  progress: number;
-  speed: number;
-  color: string;
-}
-
 export function EdgeMeshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -44,12 +24,25 @@ export function EdgeMeshCanvas() {
 
     window.addEventListener('resize', handleResize);
 
-    // Mouse Tracking
-    const mouse = { x: -1000, y: -1000, active: false };
+    // Mouse Tracking with smooth interpolation
+    const mouse = { x: width / 2, y: height / 2, targetX: width / 2, targetY: height / 2, active: false };
+    const ripples: Array<{ x: number; y: number; r: number; maxR: number; opacity: number }> = [];
+
     const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
       mouse.active = true;
+
+      // Spawn subtle pulse ripple on mouse move intermittently
+      if (Math.random() < 0.12) {
+        ripples.push({
+          x: e.clientX,
+          y: e.clientY,
+          r: 5,
+          maxR: 120 + Math.random() * 80,
+          opacity: 0.5
+        });
+      }
     };
 
     const handleMouseLeave = () => {
@@ -59,177 +52,190 @@ export function EdgeMeshCanvas() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    // Scroll Tracking for Field Shift
+    // Scroll Tracking
     let scrollY = window.scrollY;
     const handleScroll = () => {
       scrollY = window.scrollY;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // Generate Edge Computing Mesh Nodes
-    const count = Math.min(Math.floor((width * height) / 18000), 75);
-    const colors = ['#0d63ff', '#13c8c2', '#38bdf8', '#8b5cf6', '#10b981'];
+    // Grid / Wave Signal Beams
+    interface Beam {
+      x: number;
+      y: number;
+      speed: number;
+      length: number;
+      axis: 'horizontal' | 'vertical';
+      color: string;
+    }
 
-    const nodes: ParticleNode[] = Array.from({ length: count }, (_, i) => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.7,
-      vy: (Math.random() - 0.5) * 0.7,
-      radius: Math.random() * 2.5 + 2,
-      pulsePhase: Math.random() * Math.PI * 2,
-      pulseSpeed: 0.02 + Math.random() * 0.03,
-      color: colors[i % colors.length],
-      label: i % 8 === 0 ? ['UAV', 'V2X', 'TinyML', 'Edge AI', 'Fog', 'Cloud'][i % 6] : undefined
-    }));
+    const beams: Beam[] = [];
+    const colors = ['rgba(13, 99, 255, ', 'rgba(19, 200, 194, ', 'rgba(139, 92, 246, ', 'rgba(56, 189, 248, '];
 
-    // Data Packets traversing the mesh
-    const packets: DataPacket[] = [];
-    const maxPackets = 18;
-
-    const spawnPacket = () => {
-      if (packets.length >= maxPackets) return;
-      const fromIdx = Math.floor(Math.random() * nodes.length);
-      // Find a nearby node to send packet to
-      let toIdx = (fromIdx + 1) % nodes.length;
-      let minDist = Infinity;
-
-      for (let j = 0; j < nodes.length; j++) {
-        if (j === fromIdx) continue;
-        const dx = nodes[j].x - nodes[fromIdx].x;
-        const dy = nodes[j].y - nodes[fromIdx].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 180 && dist < minDist) {
-          minDist = dist;
-          toIdx = j;
-        }
-      }
-
-      if (minDist < 180) {
-        packets.push({
-          fromNode: fromIdx,
-          toNode: toIdx,
-          progress: 0,
-          speed: 0.008 + Math.random() * 0.012,
-          color: nodes[fromIdx].color
+    const initBeams = () => {
+      beams.length = 0;
+      const count = 14;
+      for (let i = 0; i < count; i++) {
+        const isHoriz = Math.random() > 0.5;
+        beams.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          speed: (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
+          length: Math.random() * 180 + 100,
+          axis: isHoriz ? 'horizontal' : 'vertical',
+          color: colors[i % colors.length]
         });
       }
     };
 
-    // Animation Loop
+    initBeams();
+
+    // Floating Quantum Micro-Particles
+    const particles = Array.from({ length: 45 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: Math.random() * 2 + 1,
+      vy: -(Math.random() * 0.4 + 0.1),
+      vx: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.5 + 0.2,
+      pulse: Math.random() * Math.PI * 2
+    }));
+
+    let time = 0;
+
     const render = () => {
+      time += 0.015;
       ctx.clearRect(0, 0, width, height);
 
-      // Periodically spawn data packets
-      if (Math.random() < 0.1) {
-        spawnPacket();
-      }
+      // Smooth mouse position
+      mouse.x += (mouse.targetX - mouse.x) * 0.08;
+      mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
-      const scrollOffset = scrollY * 0.15;
+      const currentScroll = scrollY * 0.2;
 
-      // Update and Draw Connections
-      for (let i = 0; i < nodes.length; i++) {
-        const n1 = nodes[i];
+      // 1. Organic Wave Field (Signal Frequencies)
+      const numWaves = 4;
+      for (let w = 0; w < numWaves; w++) {
+        ctx.beginPath();
+        const baseLine = height * (0.25 + w * 0.2) + Math.sin(time + w) * 20;
+        const amplitude = 28 + w * 14;
+        const frequency = 0.002 + w * 0.001;
+        const speed = time * (0.8 + w * 0.3);
 
-        // Move Nodes
-        n1.x += n1.vx;
-        n1.y += n1.vy;
-        n1.pulsePhase += n1.pulseSpeed;
-
-        // Bounce from Boundaries
-        if (n1.x < 0 || n1.x > width) n1.vx *= -1;
-        if (n1.y < 0 || n1.y > height) n1.vy *= -1;
-
-        // Mouse Interactivity (Mild Repulsion/Glow)
-        if (mouse.active) {
-          const mdx = n1.x - mouse.x;
-          const mdy = n1.y - mouse.y;
-          const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
-          if (mdist < 140) {
-            const force = (140 - mdist) / 140;
-            n1.x += (mdx / mdist) * force * 1.5;
-            n1.y += (mdy / mdist) * force * 1.5;
-          }
+        for (let x = 0; x <= width; x += 15) {
+          const mDist = Math.hypot(x - mouse.x, baseLine - mouse.y);
+          const mFactor = mouse.active && mDist < 200 ? (1 - mDist / 200) * 35 : 0;
+          const y = baseLine + Math.sin(x * frequency + speed) * amplitude + Math.cos(x * 0.003 - speed * 0.5) * 15 - mFactor - (currentScroll % 30);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
 
-        const renderY1 = (n1.y - scrollOffset + height * 5) % height;
-
-        // Connect nearby nodes
-        for (let j = i + 1; j < nodes.length; j++) {
-          const n2 = nodes[j];
-          const renderY2 = (n2.y - scrollOffset + height * 5) % height;
-          const dx = n2.x - n1.x;
-          const dy = renderY2 - renderY1;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 160) {
-            const alpha = (1 - dist / 160) * 0.25;
-            ctx.beginPath();
-            ctx.moveTo(n1.x, renderY1);
-            ctx.lineTo(n2.x, renderY2);
-            ctx.strokeStyle = `rgba(13, 99, 255, ${alpha})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
+        const alpha = 0.05 + w * 0.02;
+        ctx.strokeStyle = colors[w % colors.length] + `${alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
       }
 
-      // Draw Data Packets
-      for (let p = packets.length - 1; p >= 0; p--) {
-        const pkt = packets[p];
-        pkt.progress += pkt.speed;
+      // 2. Dynamic Matrix Grid
+      const gridSize = 70;
+      const startY = - (currentScroll % gridSize);
 
-        if (pkt.progress >= 1) {
-          packets.splice(p, 1);
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+
+      // Vertical lines
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+
+      // Horizontal lines
+      for (let y = startY; y < height + gridSize; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // 3. Grid Beams (Traveling Energy Pulses)
+      for (let i = 0; i < beams.length; i++) {
+        const b = beams[i];
+        const grad = b.axis === 'horizontal' 
+          ? ctx.createLinearGradient(b.x, b.y, b.x + b.length, b.y)
+          : ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.length);
+
+        grad.addColorStop(0, b.color + '0)');
+        grad.addColorStop(0.5, b.color + '0.5)');
+        grad.addColorStop(1, b.color + '0)');
+
+        ctx.beginPath();
+        if (b.axis === 'horizontal') {
+          ctx.moveTo(b.x, b.y);
+          ctx.lineTo(b.x + b.length, b.y);
+          b.x += b.speed;
+          if (b.x > width + b.length) b.x = -b.length;
+          if (b.x < -b.length) b.x = width + b.length;
+        } else {
+          ctx.moveTo(b.x, b.y);
+          ctx.lineTo(b.x, b.y + b.length);
+          b.y += b.speed;
+          if (b.y > height + b.length) b.y = -b.length;
+          if (b.y < -b.length) b.y = height + b.length;
+        }
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // 4. Interactive Pulse Ripples
+      for (let r = ripples.length - 1; r >= 0; r--) {
+        const rip = ripples[r];
+        rip.r += 2.5;
+        rip.opacity -= 0.012;
+
+        if (rip.opacity <= 0 || rip.r >= rip.maxR) {
+          ripples.splice(r, 1);
           continue;
         }
 
-        const n1 = nodes[pkt.fromNode];
-        const n2 = nodes[pkt.toNode];
-        if (!n1 || !n2) continue;
-
-        const y1 = (n1.y - scrollOffset + height * 5) % height;
-        const y2 = (n2.y - scrollOffset + height * 5) % height;
-
-        const px = n1.x + (n2.x - n1.x) * pkt.progress;
-        const py = y1 + (y2 - y1) * pkt.progress;
-
         ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
-        ctx.fillStyle = pkt.color;
-        ctx.shadowColor = pkt.color;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur = 0; // reset
+        ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(19, 200, 194, ${rip.opacity})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
       }
 
-      // Draw Nodes
-      for (let i = 0; i < nodes.length; i++) {
-        const n = nodes[i];
-        const renderY = (n.y - scrollOffset + height * 5) % height;
-        const pulse = Math.sin(n.pulsePhase) * 0.8;
-        const currentRadius = Math.max(1, n.radius + pulse);
+      // 5. Mouse Ambient Interactive Glow
+      if (mouse.active) {
+        const mGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
+        mGlow.addColorStop(0, 'rgba(13, 99, 255, 0.14)');
+        mGlow.addColorStop(0.5, 'rgba(19, 200, 194, 0.05)');
+        mGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        // Node Glow Outer Ring
+        ctx.fillStyle = mGlow;
         ctx.beginPath();
-        ctx.arc(n.x, renderY, currentRadius + 4, 0, Math.PI * 2);
-        ctx.fillStyle = `${n.color}20`;
+        ctx.arc(mouse.x, mouse.y, 200, 0, Math.PI * 2);
         ctx.fill();
+      }
 
-        // Core Node
+      // 6. Floating Micro-Particles
+      for (let p of particles) {
+        p.y += p.vy;
+        p.x += p.vx;
+        p.pulse += 0.03;
+
+        if (p.y < -10) p.y = height + 10;
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+
+        const currentAlpha = p.alpha + Math.sin(p.pulse) * 0.15;
+
         ctx.beginPath();
-        ctx.arc(n.x, renderY, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = n.color;
-        ctx.shadowColor = n.color;
-        ctx.shadowBlur = 12;
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(56, 189, 248, ${Math.max(0, currentAlpha)})`;
         ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // Label if present
-        if (n.label) {
-          ctx.font = '700 10px Inter, sans-serif';
-          ctx.fillStyle = '#94a3b8';
-          ctx.fillText(n.label, n.x + 10, renderY + 4);
-        }
       }
 
       animId = requestAnimationFrame(render);
@@ -256,7 +262,7 @@ export function EdgeMeshCanvas() {
         height: '100vh',
         pointerEvents: 'none',
         zIndex: 0,
-        opacity: 0.65
+        opacity: 0.75
       }}
     />
   );
