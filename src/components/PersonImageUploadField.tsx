@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { removeBackgroundFromImage } from '@/lib/backgroundRemoval';
 
 interface PersonImageUploadFieldProps {
   initialUrl?: string;
@@ -12,7 +11,6 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
   const [imageUrl, setImageUrl] = useState<string>(initialUrl);
   const [previewUrl, setPreviewUrl] = useState<string>(initialUrl);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [autoRemoveBg, setAutoRemoveBg] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [showManualUrl, setShowManualUrl] = useState<boolean>(false);
 
@@ -21,29 +19,12 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
     if (!file) return;
 
     setIsUploading(true);
-    setStatusMessage(autoRemoveBg ? 'Detecting and removing background...' : 'Uploading photo to Vercel Storage...');
+    setStatusMessage('Uploading photo to Vercel Storage...');
+    setPreviewUrl(URL.createObjectURL(file));
 
     try {
-      let fileToUpload: File = file;
-
-      if (autoRemoveBg) {
-        try {
-          const { dataUrl, blob } = await removeBackgroundFromImage(file);
-          setPreviewUrl(dataUrl);
-          const cleanFileName = file.name.replace(/\.[^/.]+$/, '') + '-cutout.png';
-          fileToUpload = new File([blob], cleanFileName, { type: 'image/png' });
-          setStatusMessage('Uploading cutout to Vercel Storage...');
-        } catch (bgErr) {
-          console.warn('Background removal skipped, uploading original:', bgErr);
-          setStatusMessage('Uploading to Vercel Storage...');
-        }
-      } else {
-        setPreviewUrl(URL.createObjectURL(file));
-      }
-
-      // Upload fileToUpload to Vercel Storage (/api/upload)
       const formData = new FormData();
-      formData.append('file', fileToUpload);
+      formData.append('file', file);
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -79,7 +60,7 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
   return (
     <div className="field span-2" style={{ marginTop: '0.25rem' }}>
       <label style={{ display: 'block', fontWeight: 650, marginBottom: '0.4rem' }}>
-        Profile Photo (Vercel Storage &amp; Theme Background)
+        Profile Photo (Vercel Storage)
       </label>
 
       {/* Hidden input to ensure FormData picks up the image URL on form submit */}
@@ -97,7 +78,7 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
           border: '1px solid var(--line)'
         }}
       >
-        {/* Preview Frame with matching Website Theme Background */}
+        {/* Preview Frame */}
         <div
           style={{
             width: '130px',
@@ -107,9 +88,8 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
             overflow: 'hidden',
             display: 'grid',
             placeItems: 'center',
-            background:
-              'radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--primary) 28%, var(--surface-soft)), color-mix(in srgb, var(--navy) 48%, var(--surface-soft)))',
-            border: '2px solid color-mix(in srgb, var(--primary) 30%, var(--line))',
+            background: 'var(--surface-soft)',
+            border: '2px solid var(--line)',
             boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
           }}
         >
@@ -120,9 +100,8 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain',
-                objectPosition: 'bottom center',
-                transform: 'scale(1.05)'
+                objectFit: 'cover',
+                objectPosition: 'center top'
               }}
             />
           ) : (
@@ -146,7 +125,7 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
                 fontWeight: 600
               }}
             >
-              Processing...
+              Uploading...
             </div>
           )}
         </div>
@@ -196,29 +175,6 @@ export function PersonImageUploadField({ initialUrl = '', name = 'Researcher' }:
               {showManualUrl ? 'Hide URL' : '🔗 Direct URL'}
             </button>
           </div>
-
-          {/* Auto-remove background toggle */}
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.82rem',
-              color: 'var(--foreground)',
-              cursor: 'pointer',
-              userSelect: 'none'
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={autoRemoveBg}
-              onChange={(e) => setAutoRemoveBg(e.target.checked)}
-              disabled={isUploading}
-            />
-            <span>
-              <strong>Auto-remove photo background</strong> (matches website theme)
-            </span>
-          </label>
 
           {/* Status / feedback message */}
           {statusMessage && (
