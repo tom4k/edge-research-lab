@@ -76,10 +76,41 @@ export function ThemeAvatar({ src, name, className, style }: ThemeAvatarProps) {
         placeItems: 'center',
         overflow: 'hidden',
         background:
-          'radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 22%, var(--surface-soft)), color-mix(in srgb, var(--navy) 45%, var(--surface-soft)))',
+          'radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--primary) 32%, rgba(255, 255, 255, 0.14)) 0%, color-mix(in srgb, var(--primary) 18%, var(--navy)) 48%, var(--surface-soft) 85%)',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -12px 24px rgba(0, 0, 0, 0.25)',
         ...style
       }}
     >
+      {/* Subtle ambient light rings for high-tech research aesthetic */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '38%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '210px',
+          height: '210px',
+          borderRadius: '50%',
+          border: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)',
+          pointerEvents: 'none',
+          opacity: 0.6
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: '38%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '270px',
+          height: '270px',
+          borderRadius: '50%',
+          border: '1px dashed color-mix(in srgb, var(--primary) 15%, transparent)',
+          pointerEvents: 'none',
+          opacity: 0.4
+        }}
+      />
+
       {displaySrc ? (
         <>
           <img
@@ -91,17 +122,21 @@ export function ThemeAvatar({ src, name, className, style }: ThemeAvatarProps) {
               height: '100%',
               objectFit: 'contain',
               objectPosition: 'bottom center',
-              transform: 'scale(1.02)',
-              transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              transform: 'scale(1.04)',
+              filter: 'drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45))',
+              transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
           />
-          {/* Subtle bottom vignette to blend seamlessly into card surface */}
+          {/* Minimal 8% soft base feather so suit connects cleanly to card */}
           <div
             style={{
               position: 'absolute',
-              inset: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '24px',
               pointerEvents: 'none',
-              background: 'linear-gradient(to top, var(--surface) 0%, transparent 35%)'
+              background: 'linear-gradient(to top, var(--surface) 0%, transparent 100%)'
             }}
           />
         </>
