@@ -7,6 +7,7 @@ import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { PageVisibilityMap, UserRole } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
+import { PersonImageUploadField } from '@/components/PersonImageUploadField';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -707,7 +708,30 @@ export default function AdminPage() {
                                 <>
                                   <td>
                                     <div className="table-user-cell">
-                                      <div className="table-user-avatar">{initials(item.name)}</div>
+                                      <div
+                                        className="table-user-avatar"
+                                        style={{
+                                          overflow: 'hidden',
+                                          padding: 0,
+                                          background:
+                                            'radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--primary) 35%, var(--surface-soft)), color-mix(in srgb, var(--navy) 55%, var(--surface-soft)))'
+                                        }}
+                                      >
+                                        {item.image ? (
+                                          <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            style={{
+                                              width: '100%',
+                                              height: '100%',
+                                              objectFit: 'contain',
+                                              objectPosition: 'bottom center'
+                                            }}
+                                          />
+                                        ) : (
+                                          initials(item.name)
+                                        )}
+                                      </div>
                                       <div>
                                         <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.name}</strong>
                                         <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.2rem' }}>
@@ -1275,7 +1299,10 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="field span-2"><label>Research Interests</label><input className="input" name="interests" defaultValue={editingItem.data?.interests || ''} /></div>
-                  <div className="field span-2"><label>Image URL (Optional)</label><input className="input" name="image" defaultValue={editingItem.data?.image || ''} /></div>
+                  <PersonImageUploadField
+                    initialUrl={editingItem.data?.image || ''}
+                    name={editingItem.data?.name || 'Researcher'}
+                  />
                 </>
               )}
 

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { PageGuard } from '@/components/PageGuard';
 import { PersonPublicationsModal } from '@/components/PersonPublicationsModal';
+import { ThemeAvatar } from '@/components/ThemeAvatar';
 import { Person } from '@/lib/types';
 
 export default function PeoplePage() {
@@ -81,13 +82,7 @@ export default function PeoplePage() {
                 const personPubs = getPersonPublications(person);
                 return (
                   <article key={person.id} className="card people-card">
-                    <div className="person-visual">
-                      {person.image ? (
-                        <img src={person.image} alt={person.name} loading="lazy" />
-                      ) : (
-                        <div className="avatar-fallback">{initials(person.name)}</div>
-                      )}
-                    </div>
+                    <ThemeAvatar src={person.image} name={person.name} />
                     <div className="person-body">
                       <div className="person-role">
                         {person.group} · {person.role}
