@@ -87,7 +87,7 @@ export async function POST(request: Request) {
             name: p.name,
             role: p.role,
             group: p.group,
-            bio: p.bio,
+            bio: p.bio || '',
             interests: p.interests,
             email: p.email,
             image: p.image || '',

@@ -53,7 +53,7 @@ export interface Person {
   name: string;
   role: string;
   group: string;
-  bio: string;
+  bio?: string;
   interests: string;
   email: string;
   image?: string;

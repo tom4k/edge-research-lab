@@ -20,7 +20,7 @@ export default function PeoplePage() {
     const q = searchTerm.toLowerCase().trim();
     return data.people.filter((p) => {
       const matchesGroup = selectedGroup === 'All' || p.group === selectedGroup;
-      const matchesQuery = !q || `${p.name} ${p.role} ${p.bio} ${p.interests}`.toLowerCase().includes(q);
+      const matchesQuery = !q || `${p.name} ${p.role} ${p.interests}`.toLowerCase().includes(q);
       return matchesGroup && matchesQuery;
     });
   }, [data.people, searchTerm, selectedGroup]);
@@ -93,7 +93,6 @@ export default function PeoplePage() {
                         {person.group} · {person.role}
                       </div>
                       <h3>{person.name}</h3>
-                      <p>{person.bio}</p>
                       <div className="card-meta">
                         {String(person.interests || '')
                           .split(',')

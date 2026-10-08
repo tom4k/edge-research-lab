@@ -74,7 +74,7 @@ async function main() {
         name: person.name,
         role: person.role,
         group: person.group,
-        bio: person.bio,
+        bio: person.bio || '',
         interests: person.interests,
         email: person.email,
         image: person.image

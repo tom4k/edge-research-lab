@@ -547,7 +547,7 @@ export default function AdminPage() {
                 // Text search across common fields
                 const textMatch =
                   !q ||
-                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.inventors || ''} ${item.patentNumber || ''} ${item.jurisdiction || ''} ${item.lead || ''} ${item.summary || ''} ${item.bio || ''} ${item.interests || ''}`
+                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.inventors || ''} ${item.patentNumber || ''} ${item.jurisdiction || ''} ${item.lead || ''} ${item.summary || ''} ${item.interests || ''}`
                     .toLowerCase()
                     .includes(q);
 
@@ -1277,7 +1277,6 @@ export default function AdminPage() {
                       required
                     />
                   </div>
-                  <div className="field span-2"><label>Biography</label><textarea className="textarea" name="bio" defaultValue={editingItem.data?.bio || ''} required /></div>
                   <div className="field span-2"><label>Research Interests</label><input className="input" name="interests" defaultValue={editingItem.data?.interests || ''} /></div>
                   <div className="field span-2"><label>Image URL (Optional)</label><input className="input" name="image" defaultValue={editingItem.data?.image || ''} /></div>
                 </>
