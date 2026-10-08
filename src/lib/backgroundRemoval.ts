@@ -1,25 +1,28 @@
 /**
  * High-accuracy AI background removal using Google MediaPipe Selfie Segmentation.
- * Produces crisp portrait cutouts with hair, body, and clothing preserved,
+ * Produces crisp, studio-grade portrait cutouts with hair, face, and clothing preserved,
  * completely eliminating studio gradients, wall textures, and background objects.
  */
 
-// Module-level singleton to avoid re-initializing WASM/TFLite model repeatedly
-let segmenterPromise: Promise<any> | null = null;
+let segmenterInstance: any = null;
+let segmenterInitPromise: Promise<any> | null = null;
+let globalTimestamp = 1000;
+let queuePromise = Promise.resolve();
 
 async function getSegmenter(): Promise<any> {
   if (typeof window === 'undefined') {
     throw new Error('SelfieSegmentation is only available in the browser');
   }
 
-  if (!segmenterPromise) {
-    segmenterPromise = (async () => {
+  if (segmenterInstance) {
+    return segmenterInstance;
+  }
+
+  if (!segmenterInitPromise) {
+    segmenterInitPromise = (async () => {
       const { SelfieSegmentation } = await import('@mediapipe/selfie_segmentation');
       const segmenter = new SelfieSegmentation({
-        locateFile: (file: string) => {
-          // Prefer local public/mediapipe/ files, with CDN fallback
-          return `/mediapipe/${file}`;
-        }
+        locateFile: (file: string) => `/mediapipe/${file}`
       });
 
       segmenter.setOptions({
@@ -27,11 +30,12 @@ async function getSegmenter(): Promise<any> {
       });
 
       await segmenter.initialize();
+      segmenterInstance = segmenter;
       return segmenter;
     })();
   }
 
-  return segmenterPromise;
+  return segmenterInitPromise;
 }
 
 export async function removeBackgroundFromImage(
@@ -41,6 +45,22 @@ export async function removeBackgroundFromImage(
     throw new Error('Background removal must be run on the client');
   }
 
+  // Queue calls sequentially to guarantee monotonic timestamps for MediaPipe graph
+  return new Promise((resolve, reject) => {
+    queuePromise = queuePromise.then(async () => {
+      try {
+        const result = await processSingleImage(source);
+        resolve(result);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}
+
+async function processSingleImage(
+  source: string | File | Blob
+): Promise<{ dataUrl: string; blob: Blob }> {
   let objectUrlToRevoke: string | null = null;
   let url: string;
 
@@ -52,13 +72,12 @@ export async function removeBackgroundFromImage(
   }
 
   try {
-    // 1. Load image element
+    // 1. Load image
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image();
       el.crossOrigin = 'anonymous';
       el.onload = () => resolve(el);
       el.onerror = () => {
-        // If CORS blocked on external URL, attempt to load without crossOrigin
         const fallback = new Image();
         fallback.onload = () => resolve(fallback);
         fallback.onerror = () => reject(new Error('Failed to load image for processing'));
@@ -70,8 +89,8 @@ export async function removeBackgroundFromImage(
     const naturalW = img.naturalWidth || img.width;
     const naturalH = img.naturalHeight || img.height;
 
-    // Constrain maximum dimension for fast processing & crisp profile presentation
-    const maxDim = 900;
+    // Constrain maximum dimension for optimal speed and crisp profile presentation
+    const maxDim = 800;
     let width = naturalW;
     let height = naturalH;
     if (width > maxDim || height > maxDim) {
@@ -89,7 +108,7 @@ export async function removeBackgroundFromImage(
     sourceCanvas.width = width;
     sourceCanvas.height = height;
     const sCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
-    if (!sCtx) throw new Error('Could not create 2D source canvas context');
+    if (!sCtx) throw new Error('Could not create source canvas context');
     sCtx.drawImage(img, 0, 0, width, height);
 
     // 2. Run MediaPipe AI Selfie Segmentation
@@ -98,7 +117,7 @@ export async function removeBackgroundFromImage(
     const maskCanvas = await new Promise<HTMLCanvasElement>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('MediaPipe segmentation timed out'));
-      }, 15000);
+      }, 12000);
 
       segmenter.onResults((results: any) => {
         clearTimeout(timeout);
@@ -111,8 +130,6 @@ export async function removeBackgroundFromImage(
             reject(new Error('Could not create mask canvas context'));
             return;
           }
-
-          // Draw the segmentation mask
           mCtx.drawImage(results.segmentationMask, 0, 0, width, height);
           resolve(mCanvas);
         } catch (err) {
@@ -120,57 +137,143 @@ export async function removeBackgroundFromImage(
         }
       });
 
-      segmenter.send({ image: sourceCanvas }).catch((err: any) => {
+      // Strict monotonically increasing timestamp
+      globalTimestamp += 100;
+      segmenter.send({ image: sourceCanvas }, globalTimestamp).catch((err: any) => {
         clearTimeout(timeout);
         reject(err);
       });
     });
 
-    // 3. Composite original photo with segmentation mask
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = width;
-    finalCanvas.height = height;
-    const fCtx = finalCanvas.getContext('2d', { willReadFrequently: true });
-    if (!fCtx) throw new Error('Could not create final canvas context');
-
-    // Get pixel data from source and mask
+    // 3. Process mask and composite
     const sourceData = sCtx.getImageData(0, 0, width, height);
     const mCtx = maskCanvas.getContext('2d');
     const maskData = mCtx?.getImageData(0, 0, width, height);
 
-    if (maskData) {
-      const sPix = sourceData.data;
-      const mPix = maskData.data;
-      const totalPixels = width * height;
+    if (!maskData) {
+      throw new Error('Could not obtain mask pixel data');
+    }
 
-      for (let i = 0; i < totalPixels; i++) {
-        const idx = i * 4;
-        // In MediaPipe, confidence is in red and/or alpha channel
-        const rVal = mPix[idx];
-        const aVal = mPix[idx + 3];
-        // Confidence value from 0 to 255
-        const confidence = Math.max(rVal, aVal);
+    const sPix = sourceData.data;
+    const mPix = maskData.data;
+    const totalPixels = width * height;
 
-        if (confidence < 35) {
-          // Pure background -> transparent
-          sPix[idx + 3] = 0;
-        } else if (confidence > 220) {
-          // Clear foreground subject -> keep original alpha
-          // (keep sPix[idx + 3])
-        } else {
-          // Feathered edge (hair strands, shoulders) -> smooth alpha transition
-          const featherRatio = (confidence - 35) / (220 - 35);
-          sPix[idx + 3] = Math.round(sPix[idx + 3] * featherRatio);
+    // Step A: Binary foreground based on red channel confidence
+    const isForeground = new Uint8Array(totalPixels);
+    for (let i = 0; i < totalPixels; i++) {
+      if (mPix[i * 4] > 60) {
+        isForeground[i] = 1;
+      }
+    }
+
+    // Step B: Despeckle filter to remove small floating artifacts (< 350px)
+    const visitedComp = new Uint8Array(totalPixels);
+    for (let i = 0; i < totalPixels; i++) {
+      if (isForeground[i] && !visitedComp[i]) {
+        const comp: number[] = [];
+        const q: number[] = [i];
+        visitedComp[i] = 1;
+        let qHead = 0;
+
+        while (qHead < q.length) {
+          const curr = q[qHead++];
+          comp.push(curr);
+          const cx = curr % width;
+          const cy = (curr / width) | 0;
+
+          const nbrs = [
+            cx > 0 ? curr - 1 : -1,
+            cx < width - 1 ? curr + 1 : -1,
+            cy > 0 ? curr - width : -1,
+            cy < height - 1 ? curr + width : -1
+          ];
+
+          for (const n of nbrs) {
+            if (n >= 0 && isForeground[n] && !visitedComp[n]) {
+              visitedComp[n] = 1;
+              q.push(n);
+            }
+          }
+        }
+
+        if (comp.length < 350) {
+          for (const p of comp) {
+            isForeground[p] = 0;
+          }
         }
       }
-
-      fCtx.putImageData(sourceData, 0, 0);
-    } else {
-      // Fallback composite
-      fCtx.drawImage(maskCanvas, 0, 0, width, height);
-      fCtx.globalCompositeOperation = 'source-in';
-      fCtx.drawImage(sourceCanvas, 0, 0, width, height);
     }
+
+    // Step C: BFS flood fill from outer borders to identify true exterior background
+    const isExteriorBg = new Uint8Array(totalPixels);
+    const queue = new Int32Array(totalPixels);
+    let head = 0;
+    let tail = 0;
+
+    // Seed top border
+    for (let x = 0; x < width; x++) {
+      if (!isForeground[x]) {
+        isExteriorBg[x] = 1;
+        queue[tail++] = x;
+      }
+    }
+
+    // Seed upper side borders (upper 70% where background surrounds shoulders & head)
+    const sideLimit = Math.round(height * 0.7);
+    for (let y = 0; y < sideLimit; y++) {
+      const lIdx = y * width;
+      if (!isForeground[lIdx] && !isExteriorBg[lIdx]) {
+        isExteriorBg[lIdx] = 1;
+        queue[tail++] = lIdx;
+      }
+      const rIdx = y * width + (width - 1);
+      if (!isForeground[rIdx] && !isExteriorBg[rIdx]) {
+        isExteriorBg[rIdx] = 1;
+        queue[tail++] = rIdx;
+      }
+    }
+
+    while (head < tail) {
+      const p = queue[head++];
+      const px = p % width;
+      const py = (p / width) | 0;
+
+      const neighbors = [
+        px > 0 ? p - 1 : -1,
+        px < width - 1 ? p + 1 : -1,
+        py > 0 ? p - width : -1,
+        py < height - 1 ? p + width : -1
+      ];
+
+      for (const n of neighbors) {
+        if (n >= 0 && !isForeground[n] && !isExteriorBg[n]) {
+          isExteriorBg[n] = 1;
+          queue[tail++] = n;
+        }
+      }
+    }
+
+    // Step D: Apply alpha transparency and feathered edges
+    for (let i = 0; i < totalPixels; i++) {
+      const idx = i * 4;
+      if (isExteriorBg[i]) {
+        sPix[idx + 3] = 0;
+      } else {
+        const conf = mPix[idx];
+        if (conf > 25 && conf < 180) {
+          sPix[idx + 3] = Math.round(sPix[idx + 3] * (conf / 180));
+        } else {
+          sPix[idx + 3] = 255;
+        }
+      }
+    }
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = width;
+    finalCanvas.height = height;
+    const fCtx = finalCanvas.getContext('2d');
+    if (!fCtx) throw new Error('Could not create final canvas context');
+    fCtx.putImageData(sourceData, 0, 0);
 
     return new Promise((resolve, reject) => {
       finalCanvas.toBlob(
