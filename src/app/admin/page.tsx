@@ -268,7 +268,7 @@ export default function AdminPage() {
                 Toggle pages on or off. Deactivated pages will hide from the header & footer navigation and display an offline guard notice if visited directly.
               </p>
 
-              {(['research', 'people', 'publications', 'projects', 'news', 'contact'] as (keyof PageVisibilityMap)[]).map((key) => (
+              {(['research', 'people', 'publications', 'patents', 'projects', 'news', 'contact'] as (keyof PageVisibilityMap)[]).map((key) => (
                 <div key={key} className="page-toggle-row">
                   <div className="page-toggle-info">
                     <strong>{key} Page</strong>
@@ -624,6 +624,15 @@ export default function AdminPage() {
                             </>
                           )}
 
+                          {adminSection === 'patents' && (
+                            <>
+                              <th>Patent Title & Status</th>
+                              <th>Inventors & Jurisdiction</th>
+                              <th>Patent No & Year</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
                           {adminSection === 'projects' && (
                             <>
                               <th>Project Title & Status</th>
@@ -772,6 +781,33 @@ export default function AdminPage() {
                                     >
                                       {item.isLabRelevant ? '✓ Lab Relevant' : '+ Mark Relevant'}
                                     </button>
+                                  </td>
+                                </>
+                              )}
+
+                              {/* PATENTS TABLE CELLS */}
+                              {adminSection === 'patents' && (
+                                <>
+                                  <td>
+                                    <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.title}</strong>
+                                    <span
+                                      className="tag"
+                                      style={{
+                                        fontSize: '0.72rem',
+                                        marginTop: '4px',
+                                        background: item.status === 'Granted' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, var(--primary) 15%, transparent)',
+                                        color: item.status === 'Granted' ? 'var(--success)' : 'var(--primary)'
+                                      }}
+                                    >
+                                      {item.status} ({item.year})
+                                    </span>
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                                    <div><strong>Inventors:</strong> {item.inventors}</div>
+                                    <div style={{ fontSize: '0.78rem', marginTop: '2px' }}>{item.jurisdiction}</div>
+                                  </td>
+                                  <td style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                                    {item.patentNumber}
                                   </td>
                                 </>
                               )}
@@ -1162,6 +1198,19 @@ export default function AdminPage() {
                   <div className="field"><label>Year</label><input className="input" name="year" defaultValue={editingItem.data?.year || '2026'} required /></div>
                   <div className="field"><label>Type (Journal, Conference)</label><input className="input" name="type" defaultValue={editingItem.data?.type || 'Journal'} required /></div>
                   <div className="field span-2"><label>DOI (Optional)</label><input className="input" name="doi" defaultValue={editingItem.data?.doi || ''} /></div>
+                </>
+              )}
+
+              {editingItem.collection === 'patents' && (
+                <>
+                  <div className="field span-2"><label>Patent Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
+                  <div className="field span-2"><label>Inventors</label><input className="input" name="inventors" defaultValue={editingItem.data?.inventors || ''} required /></div>
+                  <div className="field"><label>Patent Number</label><input className="input" name="patentNumber" defaultValue={editingItem.data?.patentNumber || ''} required /></div>
+                  <div className="field"><label>Status (Granted, Published, Filed, Pending)</label><input className="input" name="status" defaultValue={editingItem.data?.status || 'Granted'} required /></div>
+                  <div className="field"><label>Jurisdiction (USPTO, IPO, PCT, etc.)</label><input className="input" name="jurisdiction" defaultValue={editingItem.data?.jurisdiction || 'USPTO'} required /></div>
+                  <div className="field"><label>Year</label><input className="input" name="year" defaultValue={editingItem.data?.year || '2026'} required /></div>
+                  <div className="field span-2"><label>Summary / Abstract</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} /></div>
+                  <div className="field span-2"><label>URL / Link (Optional)</label><input className="input" name="url" type="url" defaultValue={editingItem.data?.url || ''} /></div>
                 </>
               )}
 
