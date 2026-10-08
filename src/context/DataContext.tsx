@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { LabData, PageVisibilityMap, LabSettings } from '@/lib/types';
+import { LabData, PageVisibilityMap, LabSettings, Publication } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 import { useToast } from './ToastContext';
 
@@ -25,6 +25,7 @@ interface DataContextType {
     collection: K,
     id: string
   ) => void;
+  setPersonPublications: (personId: string, personName: string, publications: Publication[]) => void;
   resetDemoData: () => void;
   importJSON: (jsonString: string) => boolean;
   exportJSON: () => void;
@@ -38,6 +39,7 @@ const DataContext = createContext<DataContextType>({
   addItem: () => {},
   updateItem: () => {},
   deleteItem: () => {},
+  setPersonPublications: () => {},
   resetDemoData: () => {},
   importJSON: () => false,
   exportJSON: () => {}
@@ -222,6 +224,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
     [data, persist]
   );
 
+  const setPersonPublications = useCallback(
+    (personId: string, personName: string, newPubs: Publication[]) => {
+      const lastName = personName.trim().split(/\s+/).filter(Boolean).pop()?.toLowerCase();
+      const remaining = (data.publications || []).filter((p) => {
+        if (p.personId === personId) return false;
+        if (!p.personId && lastName && lastName.length >= 2 && p.authors) {
+          if (p.authors.toLowerCase().includes(lastName)) return false;
+        }
+        return true;
+      });
+      const updatedPublications = [...remaining, ...newPubs];
+      const updatedData = { ...data, publications: updatedPublications };
+      persist(updatedData, `Synced ${newPubs.length} publication(s) from Google Scholar for ${personName}`);
+    },
+    [data, persist]
+  );
+
   const resetDemoData = useCallback(() => {
     const fresh = cloneSeed();
     persist(fresh, 'Demo content restored');
@@ -268,6 +287,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
         addItem,
         updateItem,
         deleteItem,
+        setPersonPublications,
         resetDemoData,
         importJSON,
         exportJSON

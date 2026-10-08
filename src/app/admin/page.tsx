@@ -10,7 +10,7 @@ import { seedData } from '@/lib/seedData';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
-  const { data, updateSettings, togglePageActive, addItem, updateItem, deleteItem, importJSON, exportJSON, resetDemoData } = useData();
+  const { data, updateSettings, togglePageActive, addItem, updateItem, deleteItem, setPersonPublications, importJSON, exportJSON, resetDemoData } = useData();
   const { toast } = useToast();
 
   const [usernameInput, setUsernameInput] = useState('');
@@ -57,7 +57,7 @@ export default function AdminPage() {
       return;
     }
     setSyncingPersonId(personId);
-    toast(`Syncing publications from Scholar & CrossRef for ${personName}...`);
+    toast(`Syncing publications from Google Scholar for ${personName}...`);
     try {
       const res = await fetch('/api/publications/fetch', {
         method: 'POST',
@@ -65,13 +65,10 @@ export default function AdminPage() {
         body: JSON.stringify({ personId, scholarUrl, personName })
       });
       const resData = await res.json();
-      if (resData.success) {
-        toast(`Synced ${resData.fetchedCount} publications for ${personName}!`);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+      if (resData.success && Array.isArray(resData.publications)) {
+        setPersonPublications(personId, personName, resData.publications);
       } else {
-        toast(resData.error || 'Failed to fetch publications');
+        toast(resData.error || 'Failed to fetch publications from Google Scholar');
       }
     } catch {
       toast('Error connecting to publication sync service');
@@ -1499,7 +1496,7 @@ export default function AdminPage() {
                 disabled={syncingPersonId === curatingPerson.id}
                 onClick={() => handleSyncPublications(curatingPerson.id, curatingPerson.scholarUrl, curatingPerson.name)}
               >
-                {syncingPersonId === curatingPerson.id ? 'Syncing...' : '🔄 Re-Sync Google Scholar & CrossRef'}
+                {syncingPersonId === curatingPerson.id ? 'Syncing...' : '🔄 Re-Sync Google Scholar'}
               </button>
             </div>
 
@@ -1513,7 +1510,7 @@ export default function AdminPage() {
                 if (personPubs.length === 0) {
                   return (
                     <div className="empty-state" style={{ padding: '2rem 1rem' }}>
-                      No publications stored for this researcher yet. Click "Re-Sync Google Scholar & CrossRef" to fetch their papers.
+                      No publications stored for this researcher yet. Click "Re-Sync Google Scholar" to fetch their papers.
                     </div>
                   );
                 }
