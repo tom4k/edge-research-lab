@@ -99,23 +99,13 @@ export default function PeoplePage() {
                             </span>
                           ))}
                       </div>
-                      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <a className="card-link" href={`mailto:${person.email}`} style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+                      <div className="person-actions">
+                        <a className="person-email" href={`mailto:${person.email}`}>
                           {person.email}
                         </a>
                         <button
-                          className="button button-small button-outline"
+                          className="button button-small button-outline person-pubs-btn"
                           onClick={() => setModalPerson(person)}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.4rem',
-                            backdropFilter: 'blur(8px)',
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            borderColor: 'rgba(255, 255, 255, 0.18)'
-                          }}
                         >
                           📚 Publications ({personPubs.length})
                         </button>

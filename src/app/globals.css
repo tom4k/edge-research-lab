@@ -200,7 +200,7 @@ main { min-height: 70vh; overflow: clip; }
   padding: 0;
   overflow: hidden;
   border-radius: 20px;
-  min-height: 520px;
+  min-height: 560px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -212,6 +212,24 @@ main { min-height: 70vh; overflow: clip; }
   transform: translateY(-5px);
   border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px -4px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.people-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 36%,
+    rgba(7, 21, 47, 0.08) 46%,
+    rgba(7, 21, 47, 0.35) 58%,
+    rgba(7, 21, 47, 0.72) 72%,
+    rgba(7, 21, 47, 0.94) 88%,
+    rgba(7, 21, 47, 0.98) 100%
+  );
+  transition: opacity 0.3s ease;
 }
 .person-visual {
   position: absolute;
@@ -232,7 +250,7 @@ main { min-height: 70vh; overflow: clip; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 8%;
+  object-position: center top;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .people-card:hover .person-visual img {
@@ -253,35 +271,75 @@ main { min-height: 70vh; overflow: clip; }
 }
 .person-body {
   position: relative;
-  z-index: 2;
-  padding: 26px 20px 20px;
-  background: linear-gradient(
-    to top,
-    rgba(7, 21, 47, 0.94) 0%,
-    rgba(7, 21, 47, 0.82) 55%,
-    rgba(7, 21, 47, 0.35) 85%,
-    transparent 100%
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  z-index: 3;
+  padding: 14px 20px 20px;
+  background: transparent;
   margin-top: auto;
 }
 .person-role {
   color: color-mix(in srgb, var(--primary) 85%, #fff);
-  font-size: .78rem;
+  font-size: .75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .08em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 .people-card h3 {
   color: #ffffff;
-  margin: 5px 0 8px;
+  margin: 4px 0 6px;
   font-size: 1.3rem;
   font-weight: 750;
   letter-spacing: -0.015em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+.people-card .card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.people-card .tag {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
+  padding: 4px 9px;
+  font-size: .72rem;
+}
+.person-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.person-email {
+  color: #60a5fa;
+  font-size: 0.88rem;
+  font-weight: 700;
+  word-break: break-all;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  transition: color 0.2s ease;
+}
+.person-email:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+.person-pubs-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+.person-pubs-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .publication-item { display: grid; grid-template-columns: 90px 1fr auto; gap: 24px; align-items: start; padding: 24px 0; border-bottom: 1px solid var(--line); }
