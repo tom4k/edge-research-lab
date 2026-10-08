@@ -1369,7 +1369,42 @@ export default function AdminPage() {
                       <option value="Planned">Planned</option>
                     </select>
                   </div>
-                  <div className="field"><label>Lead Investigator</label><input className="input" name="lead" defaultValue={editingItem.data?.lead || ''} required /></div>
+                  <div className="field">
+                    <label>Lead Investigator</label>
+                    {data.people && data.people.length > 0 ? (
+                      <select
+                        className="select"
+                        name="lead"
+                        defaultValue={
+                          editingItem.data?.lead ||
+                          data.people.find((p) => p.role?.toLowerCase().includes('principal investigator') || p.role?.toLowerCase().includes('director'))?.name ||
+                          data.people[0]?.name ||
+                          ''
+                        }
+                        required
+                      >
+                        <option value="" disabled>-- Select Lead Investigator --</option>
+                        {editingItem.data?.lead && !data.people.some((p) => p.name === editingItem.data.lead) && (
+                          <option value={editingItem.data.lead}>
+                            {editingItem.data.lead} (External / Previous)
+                          </option>
+                        )}
+                        {data.people.map((person) => (
+                          <option key={person.id} value={person.name}>
+                            {person.name}{person.role ? ` (${person.role})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        className="input"
+                        name="lead"
+                        defaultValue={editingItem.data?.lead || ''}
+                        placeholder="Lead Investigator name"
+                        required
+                      />
+                    )}
+                  </div>
                   <div className="field"><label>Funding Body / Grant</label><input className="input" name="funding" defaultValue={editingItem.data?.funding || ''} /></div>
                   <div className="field">
                     <label>Start Year</label>
