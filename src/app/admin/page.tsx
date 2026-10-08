@@ -713,8 +713,7 @@ export default function AdminPage() {
                                         style={{
                                           overflow: 'hidden',
                                           padding: 0,
-                                          background:
-                                            'radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--primary) 35%, var(--surface-soft)), color-mix(in srgb, var(--navy) 55%, var(--surface-soft)))'
+                                          background: 'var(--surface-soft)'
                                         }}
                                       >
                                         {item.image ? (
@@ -724,8 +723,8 @@ export default function AdminPage() {
                                             style={{
                                               width: '100%',
                                               height: '100%',
-                                              objectFit: 'contain',
-                                              objectPosition: 'bottom center'
+                                              objectFit: 'cover',
+                                              objectPosition: 'center top'
                                             }}
                                           />
                                         ) : (
