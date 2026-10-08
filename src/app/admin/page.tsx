@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
-import { PageVisibilityMap, UserRole, Person } from '@/lib/types';
+import { PageVisibilityMap, UserRole } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
-import { parseGoogleScholarBibTeX } from '@/lib/bibtexParser';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -18,9 +17,6 @@ export default function AdminPage() {
   const [passwordInput, setPasswordInput] = useState('');
 
   const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news' | 'data'>('dashboard');
-
-  const [importingScholarPerson, setImportingScholarPerson] = useState<Person | null>(null);
-  const [bibtexInput, setBibtexInput] = useState('');
 
   const themePresets = [
     { id: 'cyber-blue', name: 'Cyber Edge Blue (Default)', primary: '#0d63ff', accent: '#13c8c2', navy: '#07152f' },
@@ -72,16 +68,7 @@ export default function AdminPage() {
       if (resData.success && Array.isArray(resData.publications)) {
         setPersonPublications(personId, personName, resData.publications);
       } else {
-        const errorMsg = resData.error || 'Failed to fetch publications from Google Scholar';
-        toast(errorMsg);
-        if (errorMsg.includes('403') || errorMsg.includes('blocked')) {
-          const targetPerson = (data.people || []).find((p) => p.id === personId);
-          if (targetPerson) {
-            setTimeout(() => {
-              setImportingScholarPerson(targetPerson);
-            }, 800);
-          }
-        }
+        toast(resData.error || 'Failed to fetch publications from Google Scholar');
       }
     } catch {
       toast('Error connecting to publication sync service');
@@ -757,7 +744,7 @@ export default function AdminPage() {
                                           <span className="tag" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
                                             📚 {pubCount} Papers
                                           </span>
-                                          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                                          <div style={{ display: 'flex', gap: '0.35rem' }}>
                                             <button
                                               className="button button-small button-outline"
                                               disabled={syncingPersonId === item.id}
@@ -765,14 +752,6 @@ export default function AdminPage() {
                                               style={{ fontSize: '0.75rem', padding: '3px 8px' }}
                                             >
                                               {syncingPersonId === item.id ? 'Syncing...' : '🔄 Sync'}
-                                            </button>
-                                            <button
-                                              className="button button-small button-outline"
-                                              onClick={() => setImportingScholarPerson(item)}
-                                              style={{ fontSize: '0.75rem', padding: '3px 8px' }}
-                                              title="Import publications from Google Scholar BibTeX export"
-                                            >
-                                              📥 BibTeX
                                             </button>
                                             <button
                                               className="button button-small button-secondary"
@@ -1511,19 +1490,13 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 className="button button-small button-outline"
                 disabled={syncingPersonId === curatingPerson.id}
                 onClick={() => handleSyncPublications(curatingPerson.id, curatingPerson.scholarUrl, curatingPerson.name)}
               >
                 {syncingPersonId === curatingPerson.id ? 'Syncing...' : '🔄 Re-Sync Google Scholar'}
-              </button>
-              <button
-                className="button button-small button-secondary"
-                onClick={() => setImportingScholarPerson(curatingPerson)}
-              >
-                📥 Import BibTeX Export
               </button>
             </div>
 
@@ -1537,7 +1510,7 @@ export default function AdminPage() {
                 if (personPubs.length === 0) {
                   return (
                     <div className="empty-state" style={{ padding: '2rem 1rem' }}>
-                      No publications stored for this researcher yet. Click "Re-Sync Google Scholar" or "Import BibTeX Export" to fetch their papers.
+                      No publications stored for this researcher yet. Click "Re-Sync Google Scholar" to fetch their papers.
                     </div>
                   );
                 }
@@ -1581,152 +1554,6 @@ export default function AdminPage() {
                 ));
               })()}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL FOR IMPORTING GOOGLE SCHOLAR BIBTEX */}
-      {importingScholarPerson && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setImportingScholarPerson(null);
-            setBibtexInput('');
-          }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1.5rem'
-          }}
-        >
-          <div
-            className="modal"
-            style={{ maxWidth: '750px', width: '90%', maxHeight: '85vh', overflowY: 'auto' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <div>
-                <span className="eyebrow">Google Scholar Import</span>
-                <h2 style={{ margin: '0.25rem 0 0 0' }}>Import Publications for {importingScholarPerson.name}</h2>
-              </div>
-              <button
-                className="icon-button"
-                onClick={() => {
-                  setImportingScholarPerson(null);
-                  setBibtexInput('');
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div
-              style={{
-                marginTop: '1rem',
-                background: 'rgba(59, 130, 246, 0.08)',
-                padding: '1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                border: '1px solid rgba(59, 130, 246, 0.25)'
-              }}
-            >
-              <strong style={{ color: '#60a5fa' }}>💡 How to export directly from Google Scholar (100% accurate):</strong>
-              <ol style={{ margin: '0.5rem 0 0 1.25rem', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                <li>
-                  Open{' '}
-                  <a
-                    href={importingScholarPerson.scholarUrl || 'https://scholar.google.com'}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: 'var(--primary)', textDecoration: 'underline', fontWeight: 600 }}
-                  >
-                    {importingScholarPerson.name}&apos;s Google Scholar Profile ↗
-                  </a>
-                </li>
-                <li>Check the checkbox at the top of the table to select all their publications.</li>
-                <li>Click <strong>Export</strong> &rarr; choose <strong>BibTeX</strong>.</li>
-                <li>Copy the exported BibTeX text and paste it below (or upload the downloaded <code>.bib</code> file).</li>
-              </ol>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!bibtexInput.trim()) {
-                  toast('Please paste BibTeX content or choose a .bib file');
-                  return;
-                }
-                const parsed = parseGoogleScholarBibTeX(bibtexInput, importingScholarPerson.id, importingScholarPerson.name);
-                if (parsed.length === 0) {
-                  toast('No valid BibTeX entries found. Please verify the copied text.');
-                  return;
-                }
-                setPersonPublications(importingScholarPerson.id, importingScholarPerson.name, parsed);
-                setImportingScholarPerson(null);
-                setBibtexInput('');
-              }}
-              style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
-            >
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, fontSize: '0.88rem' }}>
-                  Option A: Upload .bib File
-                </label>
-                <input
-                  type="file"
-                  accept=".bib,.txt"
-                  className="input"
-                  style={{ padding: '0.4rem' }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const content = event.target?.result as string;
-                        if (content) setBibtexInput(content);
-                      };
-                      reader.readAsText(file);
-                    }
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, fontSize: '0.88rem' }}>
-                  Option B: Or Paste BibTeX Text
-                </label>
-                <textarea
-                  className="textarea"
-                  style={{ minHeight: '180px', fontFamily: 'monospace', fontSize: '0.85rem' }}
-                  placeholder={`@article{example2025,\n  title={Paper Title},\n  author={${importingScholarPerson.name}},\n  journal={IEEE Transactions},\n  year={2025}\n}`}
-                  value={bibtexInput}
-                  onChange={(e) => setBibtexInput(e.target.value)}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-                <button
-                  type="button"
-                  className="button button-outline"
-                  onClick={() => {
-                    setImportingScholarPerson(null);
-                    setBibtexInput('');
-                  }}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="button">
-                  📥 Import {bibtexInput.split('@').length > 1 ? `${bibtexInput.split('@').length - 1} Publications` : 'Publications'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

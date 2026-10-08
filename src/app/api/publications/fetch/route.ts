@@ -118,6 +118,36 @@ async function fetchScholarPublications(scholarUserId: string, authorName: strin
   return publications;
 }
 
+// Fetch publications via SerpApi (Official industry proxy for Google Scholar with 100 free searches/mo)
+async function fetchSerpApiScholarPublications(scholarUserId: string, apiKey: string, authorName: string) {
+  const url = `https://serpapi.com/search.json?engine=google_scholar_author&author_id=${encodeURIComponent(scholarUserId)}&api_key=${encodeURIComponent(apiKey)}&num=100`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`SerpApi Google Scholar returned status ${res.status}`);
+  }
+  const data = await res.json();
+  const articles = data.articles || [];
+  return articles.map((art: any) => {
+    const venue = art.publication || 'Scholarly Publication';
+    const isConf =
+      venue.toLowerCase().includes('proc') ||
+      venue.toLowerCase().includes('conf') ||
+      venue.toLowerCase().includes('symp') ||
+      venue.toLowerCase().includes('workshop');
+
+    return {
+      title: art.title || 'Untitled Work',
+      authors: art.authors || authorName,
+      venue,
+      year: art.year || String(new Date().getFullYear()),
+      type: isConf ? 'Conference' : 'Journal',
+      doi: '',
+      url: art.link || '',
+      externalId: `scholar:${scholarUserId}:${(art.citation_id || art.title || '').substring(0, 40).toLowerCase().replace(/\W+/g, '')}`
+    };
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const { personId, scholarUrl, personName } = await request.json();
@@ -136,14 +166,37 @@ export async function POST(request: Request) {
       );
     }
 
+    const apiKey = process.env.SERPAPI_KEY || process.env.GOOGLE_SCHOLAR_API_KEY;
     let scholarPubs: any[] = [];
-    try {
-      scholarPubs = await fetchScholarPublications(scholarUserId, personName);
-    } catch (err: any) {
-      return NextResponse.json(
-        { error: err.message || 'Failed to fetch publications from Google Scholar' },
-        { status: 400 }
-      );
+
+    if (apiKey) {
+      try {
+        scholarPubs = await fetchSerpApiScholarPublications(scholarUserId, apiKey, personName);
+      } catch (err: any) {
+        return NextResponse.json(
+          { error: err.message || 'Failed to fetch from SerpApi Google Scholar API' },
+          { status: 400 }
+        );
+      }
+    } else {
+      try {
+        scholarPubs = await fetchScholarPublications(scholarUserId, personName);
+      } catch (err: any) {
+        const msg = err.message || '';
+        if (msg.includes('403')) {
+          return NextResponse.json(
+            {
+              error:
+                'Google Scholar blocked automated cloud server requests (HTTP 403). Google has no official public API and blocks cloud hosts like Vercel. To enable automatic syncing, get a free key at serpapi.com and add SERPAPI_KEY to your Vercel Environment Variables.'
+            },
+            { status: 403 }
+          );
+        }
+        return NextResponse.json(
+          { error: msg || 'Failed to fetch publications from Google Scholar' },
+          { status: 400 }
+        );
+      }
     }
 
     if (scholarPubs.length === 0) {
