@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { sql } from '@/lib/db';
 import { seedData } from '@/lib/seedData';
 import { LabData } from '@/lib/types';
 
@@ -12,6 +13,19 @@ export async function getLabData(): Promise<LabData> {
     const hasDb = !!(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL);
     if (!hasDb) {
       return seedData;
+    }
+
+    let patentsDb: any[] = seedData.patents;
+    if (sql) {
+      try {
+        const rows = await sql`SELECT items FROM lab_collections WHERE collection_name = 'patents' LIMIT 1`;
+        if (rows && rows.length > 0 && rows[0].items) {
+          const parsed = typeof rows[0].items === 'string' ? JSON.parse(rows[0].items) : rows[0].items;
+          if (Array.isArray(parsed)) {
+            patentsDb = parsed;
+          }
+        }
+      } catch {}
     }
 
     const [settingsDb, researchDb, peopleDb, publicationsDb, projectsDb, newsDb] = await Promise.all([
@@ -56,9 +70,9 @@ export async function getLabData(): Promise<LabData> {
         },
         { value: `${peopleDb.filter((p: any) => p.group !== 'Alumni').length}`, label: 'Active researchers' },
         { value: `${projectsDb.length}`, label: 'Research projects' },
-        { value: `${seedData.patents.length}`, label: 'Patents' }
+        { value: `${patentsDb.length}`, label: 'Patents' }
       ],
-      patents: seedData.patents,
+      patents: patentsDb,
       research: (researchDb as any[]).map((r: any) => ({
         id: r.id,
         title: r.title,

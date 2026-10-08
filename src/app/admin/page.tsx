@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { PageVisibilityMap, UserRole } from '@/lib/types';
+import { seedData } from '@/lib/seedData';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -40,6 +41,7 @@ export default function AdminPage() {
   const [tableSearch, setTableSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState('All');
   const [relevanceFilter, setRelevanceFilter] = useState('All');
+  const [patentStatusFilter, setPatentStatusFilter] = useState('All');
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -511,8 +513,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COLLECTION CRUD SECTIONS (RESEARCH, PEOPLE, PUBLICATIONS, PROJECTS, NEWS) */}
-        {['research', 'people', 'publications', 'projects', 'news'].includes(adminSection) && (
+        {/* COLLECTION CRUD SECTIONS (RESEARCH, PEOPLE, PUBLICATIONS, PATENTS, PROJECTS, NEWS) */}
+        {['research', 'people', 'publications', 'patents', 'projects', 'news'].includes(adminSection) && (
           <div>
             <div className="admin-topbar">
               <div>
@@ -523,19 +525,19 @@ export default function AdminPage() {
                 className="button"
                 onClick={() => setEditingItem({ collection: adminSection, data: {} })}
               >
-                + Add {adminSection.slice(0, -1)}
+                + Add {adminSection === 'people' ? 'Person' : adminSection === 'patents' ? 'Patent' : adminSection.slice(0, -1)}
               </button>
             </div>
 
             {(() => {
-              const rawItems = (data[adminSection as keyof typeof data] as any[]) || [];
+              const rawItems = ((data[adminSection as keyof typeof data] as any[]) || (adminSection === 'patents' ? (seedData.patents || []) : [])) || [];
               const q = tableSearch.toLowerCase().trim();
 
               const filteredItems = rawItems.filter((item) => {
                 // Text search across common fields
                 const textMatch =
                   !q ||
-                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.lead || ''} ${item.summary || ''} ${item.bio || ''} ${item.interests || ''}`
+                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.inventors || ''} ${item.patentNumber || ''} ${item.jurisdiction || ''} ${item.lead || ''} ${item.summary || ''} ${item.bio || ''} ${item.interests || ''}`
                     .toLowerCase()
                     .includes(q);
 
@@ -548,6 +550,11 @@ export default function AdminPage() {
                 if (adminSection === 'publications' && relevanceFilter !== 'All') {
                   if (relevanceFilter === 'Lab Relevant' && !item.isLabRelevant) return false;
                   if (relevanceFilter === 'Non-Lab' && item.isLabRelevant) return false;
+                }
+
+                // Status filter for Patents
+                if (adminSection === 'patents' && patentStatusFilter !== 'All') {
+                  if (item.status !== patentStatusFilter) return false;
                 }
 
                 return textMatch;
@@ -592,6 +599,21 @@ export default function AdminPage() {
                           <option value="All">All Publications</option>
                           <option value="Lab Relevant">✓ Lab Relevant Only</option>
                           <option value="Non-Lab">✕ Non-Lab Papers</option>
+                        </select>
+                      )}
+
+                      {adminSection === 'patents' && (
+                        <select
+                          className="select"
+                          value={patentStatusFilter}
+                          onChange={(e) => setPatentStatusFilter(e.target.value)}
+                          style={{ width: '160px' }}
+                        >
+                          <option value="All">All Statuses</option>
+                          <option value="Granted">Granted</option>
+                          <option value="Published">Published</option>
+                          <option value="Filed">Filed</option>
+                          <option value="Pending">Pending</option>
                         </select>
                       )}
                     </div>
@@ -1126,7 +1148,7 @@ export default function AdminPage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 style={{ textTransform: 'capitalize' }}>
-                {editingItem.id ? 'Edit' : 'Add'} {editingItem.collection.slice(0, -1)}
+                {editingItem.id ? 'Edit' : 'Add'} {editingItem.collection === 'people' ? 'Person' : editingItem.collection === 'patents' ? 'Patent' : editingItem.collection.slice(0, -1)}
               </h2>
               <button className="icon-button" onClick={() => setEditingItem(null)}>
                 ×

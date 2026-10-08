@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
+import { sql } from '@/lib/db';
 import { getLabData } from '@/lib/getLabData';
 import { LabData } from '@/lib/types';
 
@@ -154,6 +155,20 @@ export async function POST(request: Request) {
             summary: n.summary
           }
         });
+      }
+    }
+
+    // 7. Sync Patents
+    if (sql && Array.isArray(body.patents)) {
+      try {
+        await sql`
+          INSERT INTO lab_collections (collection_name, items, updated_at)
+          VALUES ('patents', ${JSON.stringify(body.patents)}, NOW())
+          ON CONFLICT (collection_name)
+          DO UPDATE SET items = ${JSON.stringify(body.patents)}, updated_at = NOW();
+        `;
+      } catch (err) {
+        console.warn('Could not sync patents to lab_collections:', err);
       }
     }
 
