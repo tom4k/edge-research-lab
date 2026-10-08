@@ -35,19 +35,32 @@ async function fetchScholarPublications(scholarUserId: string, authorName: strin
   const res = await fetch(url, {
     headers: {
       'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9'
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"macOS"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1'
     },
     cache: 'no-store'
   });
 
   if (!res.ok) {
+    if (res.status === 403) {
+      throw new Error(
+        'Google Scholar blocked automated cloud server requests (HTTP 403). Cloud platforms like Vercel are blocked by Google bot protection. Please use the "Import BibTeX" button to import your Google Scholar publications.'
+      );
+    }
     if (res.status === 404) {
       throw new Error(`Google Scholar profile with ID "${scholarUserId}" was not found (404). Please verify the profile URL.`);
     }
     if (res.status === 429) {
-      throw new Error('Google Scholar rate limit reached. Please try again in a few minutes.');
+      throw new Error('Google Scholar rate limit reached. Please try again in a few minutes or use Import BibTeX.');
     }
     throw new Error(`Google Scholar returned HTTP status ${res.status}`);
   }
