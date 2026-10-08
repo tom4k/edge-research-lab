@@ -935,8 +935,22 @@ export default function AdminPage() {
                                   <button
                                     className="button-danger"
                                     onClick={() => {
-                                      if (confirm(`Delete "${item.title || item.name}"?`)) {
-                                        deleteItem(adminSection as any, item.id);
+                                      if (adminSection === 'people') {
+                                        const lastName = (item.name || '').trim().split(/\s+/).filter(Boolean).pop()?.toLowerCase();
+                                        const matchingPubs = (data.publications || []).filter((p) =>
+                                          p.personId === item.id || (!p.personId && lastName && lastName.length >= 2 && p.authors?.toLowerCase().includes(lastName))
+                                        );
+                                        const count = matchingPubs.length;
+                                        const confirmMsg = count > 0
+                                          ? `Delete "${item.name}" and their ${count} corresponding publication(s)?`
+                                          : `Delete "${item.name}"?`;
+                                        if (confirm(confirmMsg)) {
+                                          deleteItem('people', item.id);
+                                        }
+                                      } else {
+                                        if (confirm(`Delete "${item.title || item.name}"?`)) {
+                                          deleteItem(adminSection as any, item.id);
+                                        }
                                       }
                                     }}
                                   >

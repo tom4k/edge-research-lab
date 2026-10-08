@@ -181,6 +181,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
       collection: K,
       id: string
     ) => {
+      if (collection === 'people') {
+        const personToDelete = (data.people || []).find((p) => p.id === id);
+        const nameParts = (personToDelete?.name || '').trim().split(/\s+/).filter(Boolean);
+        const lastName = nameParts.length > 0 ? nameParts[nameParts.length - 1].toLowerCase() : null;
+
+        const updatedPeople = (data.people || []).filter((p) => p.id !== id);
+
+        // Delete all corresponding publications linked to this person
+        const updatedPublications = (data.publications || []).filter((pub) => {
+          if (pub.personId === id) return false;
+          if (!pub.personId && lastName && lastName.length >= 2 && pub.authors) {
+            const authorsLower = pub.authors.toLowerCase();
+            if (authorsLower.includes(lastName)) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        const deletedPubsCount = (data.publications || []).length - updatedPublications.length;
+        const updatedData = {
+          ...data,
+          people: updatedPeople,
+          publications: updatedPublications
+        };
+
+        const msg = deletedPubsCount > 0
+          ? `Deleted researcher and ${deletedPubsCount} corresponding publication(s)`
+          : 'Researcher deleted';
+
+        persist(updatedData, msg);
+        return;
+      }
+
       const updatedList = (data[collection] || []).filter((item) => item.id !== id);
       const updatedData = { ...data, [collection]: updatedList };
       persist(updatedData, 'Item deleted');
