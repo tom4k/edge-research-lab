@@ -500,6 +500,16 @@ export default function AdminPage() {
                 <label>Phone</label>
                 <input className="input" name="phone" defaultValue={data.settings.phone} />
               </div>
+              <div className="field">
+                <label>Theme Preset</label>
+                <select className="select" name="themePreset" defaultValue={data.settings.themePreset || 'cyber-blue'}>
+                  {themePresets.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="field span-2">
                 <label>Location</label>
                 <input className="input" name="location" defaultValue={data.settings.location} />
@@ -1167,6 +1177,8 @@ export default function AdminPage() {
                       .split(',')
                       .map((t) => t.trim())
                       .filter(Boolean);
+                  } else if (key === 'isLabRelevant') {
+                    values[key] = val === 'true';
                   } else {
                     values[key] = String(val).trim();
                   }
@@ -1182,8 +1194,24 @@ export default function AdminPage() {
             >
               {editingItem.collection === 'research' && (
                 <>
-                  <div className="field"><label>Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
-                  <div className="field"><label>Icon (2 letters)</label><input className="input" name="icon" defaultValue={editingItem.data?.icon || 'EI'} required /></div>
+                  <div className="field span-2"><label>Research Area Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
+                  <div className="field">
+                    <label>Badge Icon / Category</label>
+                    <select className="select" name="icon" defaultValue={editingItem.data?.icon || 'EI'}>
+                      <option value="EI">EI — Edge Intelligence</option>
+                      <option value="FD">FD — Fog & Distributed Computing</option>
+                      <option value="VE">VE — Vehicular Edge Computing</option>
+                      <option value="RO">RO — Resource Orchestration</option>
+                      <option value="UA">UA — UAV-Assisted Computing</option>
+                      <option value="CE">CE — Cloud–Edge Systems</option>
+                      <option value="AI">AI — Artificial Intelligence</option>
+                      <option value="ML">ML — TinyML / Machine Learning</option>
+                      <option value="5G">5G — 5G / 6G Edge Networks</option>
+                      <option value="IOT">IOT — Internet of Things</option>
+                      <option value="SEC">SEC — Security & Privacy</option>
+                      <option value="SYS">SYS — Embedded Systems</option>
+                    </select>
+                  </div>
                   <div className="field span-2"><label>Description</label><textarea className="textarea" name="description" defaultValue={editingItem.data?.description || ''} required /></div>
                   <div className="field span-2"><label>Tags (comma-separated)</label><input className="input" name="tags" defaultValue={(editingItem.data?.tags || []).join(', ')} /></div>
                 </>
@@ -1191,10 +1219,39 @@ export default function AdminPage() {
 
               {editingItem.collection === 'people' && (
                 <>
-                  <div className="field"><label>Name</label><input className="input" name="name" defaultValue={editingItem.data?.name || ''} required /></div>
-                  <div className="field"><label>Role</label><input className="input" name="role" defaultValue={editingItem.data?.role || ''} required /></div>
-                  <div className="field"><label>Group (e.g. Faculty, Researchers)</label><input className="input" name="group" defaultValue={editingItem.data?.group || 'Researchers'} required /></div>
-                  <div className="field"><label>Email</label><input className="input" name="email" type="email" defaultValue={editingItem.data?.email || ''} required /></div>
+                  <div className="field"><label>Full Name</label><input className="input" name="name" defaultValue={editingItem.data?.name || ''} required /></div>
+                  <div className="field">
+                    <label>Role / Designation</label>
+                    <select className="select" name="role" defaultValue={editingItem.data?.role || 'Research Scholar'}>
+                      <option value="Lab Director">Lab Director</option>
+                      <option value="Principal Investigator">Principal Investigator</option>
+                      <option value="Co-Principal Investigator">Co-Principal Investigator</option>
+                      <option value="Assistant Professor">Assistant Professor</option>
+                      <option value="Associate Professor">Associate Professor</option>
+                      <option value="Professor">Professor</option>
+                      <option value="Postdoctoral Fellow">Postdoctoral Fellow</option>
+                      <option value="Senior Research Fellow (SRF)">Senior Research Fellow (SRF)</option>
+                      <option value="Junior Research Fellow (JRF)">Junior Research Fellow (JRF)</option>
+                      <option value="Research Scholar">Research Scholar</option>
+                      <option value="Project Associate">Project Associate</option>
+                      <option value="Project Staff">Project Staff</option>
+                      <option value="Graduate Researcher">Graduate Researcher</option>
+                      <option value="Undergraduate Researcher">Undergraduate Researcher</option>
+                      <option value="Research Intern">Research Intern</option>
+                      <option value="Alumnus">Alumnus</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Group Affiliation</label>
+                    <select className="select" name="group" defaultValue={editingItem.data?.group || 'Researchers'} required>
+                      <option value="Faculty">Faculty</option>
+                      <option value="Researchers">Researchers</option>
+                      <option value="Project Staff">Project Staff</option>
+                      <option value="Students">Students</option>
+                      <option value="Alumni">Alumni</option>
+                    </select>
+                  </div>
+                  <div className="field"><label>Email Address</label><input className="input" name="email" type="email" defaultValue={editingItem.data?.email || ''} required /></div>
                   <div className="field span-2">
                     <label>Google Scholar Profile URL (Compulsory)</label>
                     <input
@@ -1214,47 +1271,128 @@ export default function AdminPage() {
 
               {editingItem.collection === 'publications' && (
                 <>
-                  <div className="field span-2"><label>Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
-                  <div className="field"><label>Authors</label><input className="input" name="authors" defaultValue={editingItem.data?.authors || ''} required /></div>
-                  <div className="field"><label>Venue</label><input className="input" name="venue" defaultValue={editingItem.data?.venue || ''} required /></div>
-                  <div className="field"><label>Year</label><input className="input" name="year" defaultValue={editingItem.data?.year || '2026'} required /></div>
-                  <div className="field"><label>Type (Journal, Conference)</label><input className="input" name="type" defaultValue={editingItem.data?.type || 'Journal'} required /></div>
-                  <div className="field span-2"><label>DOI (Optional)</label><input className="input" name="doi" defaultValue={editingItem.data?.doi || ''} /></div>
+                  <div className="field span-2"><label>Publication Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
+                  <div className="field span-2"><label>Authors (comma-separated)</label><input className="input" name="authors" defaultValue={editingItem.data?.authors || ''} required /></div>
+                  <div className="field"><label>Venue (Journal / Conference / Workshop)</label><input className="input" name="venue" defaultValue={editingItem.data?.venue || ''} required /></div>
+                  <div className="field">
+                    <label>Publication Year</label>
+                    <select className="select" name="year" defaultValue={editingItem.data?.year || '2026'} required>
+                      {Array.from({ length: 16 }, (_, i) => String(2027 - i)).map((yr) => (
+                        <option key={yr} value={yr}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Publication Type</label>
+                    <select className="select" name="type" defaultValue={editingItem.data?.type || 'Journal'} required>
+                      <option value="Journal">Journal Article</option>
+                      <option value="Conference">Conference Paper</option>
+                      <option value="Workshop">Workshop Paper</option>
+                      <option value="Book Chapter">Book Chapter</option>
+                      <option value="Preprint">Preprint (arXiv)</option>
+                      <option value="Patent">Patent / Standard</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Lab Relevance</label>
+                    <select className="select" name="isLabRelevant" defaultValue={editingItem.data?.isLabRelevant !== false ? 'true' : 'false'}>
+                      <option value="true">✓ Lab Relevant (Public on /publications)</option>
+                      <option value="false">✕ Non-Lab Paper (Internal Archive)</option>
+                    </select>
+                  </div>
+                  <div className="field span-2"><label>DOI URL / Identifier (Optional)</label><input className="input" name="doi" defaultValue={editingItem.data?.doi || ''} placeholder="e.g. 10.1109/TMC.2025.1234567" /></div>
                 </>
               )}
 
               {editingItem.collection === 'patents' && (
                 <>
                   <div className="field span-2"><label>Patent Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
-                  <div className="field span-2"><label>Inventors</label><input className="input" name="inventors" defaultValue={editingItem.data?.inventors || ''} required /></div>
-                  <div className="field"><label>Patent Number</label><input className="input" name="patentNumber" defaultValue={editingItem.data?.patentNumber || ''} required /></div>
-                  <div className="field"><label>Status (Granted, Published, Filed, Pending)</label><input className="input" name="status" defaultValue={editingItem.data?.status || 'Granted'} required /></div>
-                  <div className="field"><label>Jurisdiction (USPTO, IPO, PCT, etc.)</label><input className="input" name="jurisdiction" defaultValue={editingItem.data?.jurisdiction || 'USPTO'} required /></div>
-                  <div className="field"><label>Year</label><input className="input" name="year" defaultValue={editingItem.data?.year || '2026'} required /></div>
+                  <div className="field span-2"><label>Inventors (comma-separated)</label><input className="input" name="inventors" defaultValue={editingItem.data?.inventors || ''} required /></div>
+                  <div className="field"><label>Patent Number</label><input className="input" name="patentNumber" defaultValue={editingItem.data?.patentNumber || ''} placeholder="e.g. US 11,842,109 B2" required /></div>
+                  <div className="field">
+                    <label>Patent Status</label>
+                    <select className="select" name="status" defaultValue={editingItem.data?.status || 'Granted'} required>
+                      <option value="Granted">Granted</option>
+                      <option value="Published">Published</option>
+                      <option value="Filed">Filed</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Jurisdiction / Patent Office</label>
+                    <select className="select" name="jurisdiction" defaultValue={editingItem.data?.jurisdiction || 'United States Patent and Trademark Office (USPTO)'} required>
+                      <option value="United States Patent and Trademark Office (USPTO)">United States Patent and Trademark Office (USPTO)</option>
+                      <option value="Indian Patent Office (IPO)">Indian Patent Office (IPO)</option>
+                      <option value="European Patent Office (EPO)">European Patent Office (EPO)</option>
+                      <option value="World Intellectual Property Organization (WIPO / PCT)">World Intellectual Property Organization (WIPO / PCT)</option>
+                      <option value="Japan Patent Office (JPO)">Japan Patent Office (JPO)</option>
+                      <option value="China National Intellectual Property Administration (CNIPA)">China National Intellectual Property Administration (CNIPA)</option>
+                      <option value="International / Other">International / Other</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Filing / Grant Year</label>
+                    <select className="select" name="year" defaultValue={editingItem.data?.year || '2026'} required>
+                      {Array.from({ length: 15 }, (_, i) => String(2027 - i)).map((yr) => (
+                        <option key={yr} value={yr}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="field span-2"><label>Summary / Abstract</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} /></div>
-                  <div className="field span-2"><label>URL / Link (Optional)</label><input className="input" name="url" type="url" defaultValue={editingItem.data?.url || ''} /></div>
+                  <div className="field span-2"><label>Patent Official URL (Optional)</label><input className="input" name="url" type="url" defaultValue={editingItem.data?.url || ''} placeholder="https://patents.google.com/patent/..." /></div>
                 </>
               )}
 
               {editingItem.collection === 'projects' && (
                 <>
-                  <div className="field span-2"><label>Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
+                  <div className="field span-2"><label>Project Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
                   <div className="field span-2"><label>Summary</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} required /></div>
-                  <div className="field"><label>Status (Ongoing, Completed)</label><input className="input" name="status" defaultValue={editingItem.data?.status || 'Ongoing'} required /></div>
+                  <div className="field">
+                    <label>Project Status</label>
+                    <select className="select" name="status" defaultValue={editingItem.data?.status || 'Ongoing'} required>
+                      <option value="Ongoing">Ongoing</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Planned">Planned</option>
+                    </select>
+                  </div>
                   <div className="field"><label>Lead Investigator</label><input className="input" name="lead" defaultValue={editingItem.data?.lead || ''} required /></div>
-                  <div className="field"><label>Funding</label><input className="input" name="funding" defaultValue={editingItem.data?.funding || ''} /></div>
-                  <div className="field"><label>Start Year</label><input className="input" name="start" defaultValue={editingItem.data?.start || '2025'} /></div>
-                  <div className="field"><label>End Year</label><input className="input" name="end" defaultValue={editingItem.data?.end || '2027'} /></div>
+                  <div className="field"><label>Funding Body / Grant</label><input className="input" name="funding" defaultValue={editingItem.data?.funding || ''} /></div>
+                  <div className="field">
+                    <label>Start Year</label>
+                    <select className="select" name="start" defaultValue={editingItem.data?.start || '2025'} required>
+                      {Array.from({ length: 15 }, (_, i) => String(2027 - i)).map((yr) => (
+                        <option key={yr} value={yr}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>End Year (or Expected)</label>
+                    <select className="select" name="end" defaultValue={editingItem.data?.end || '2027'} required>
+                      {Array.from({ length: 15 }, (_, i) => String(2030 - i)).map((yr) => (
+                        <option key={yr} value={yr}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="field span-2"><label>Tags (comma-separated)</label><input className="input" name="tags" defaultValue={(editingItem.data?.tags || []).join(', ')} /></div>
                 </>
               )}
 
               {editingItem.collection === 'news' && (
                 <>
-                  <div className="field span-2"><label>Title</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
-                  <div className="field"><label>Date (YYYY-MM-DD)</label><input className="input" name="date" type="date" defaultValue={editingItem.data?.date || new Date().toISOString().slice(0, 10)} required /></div>
-                  <div className="field"><label>Category</label><input className="input" name="category" defaultValue={editingItem.data?.category || 'Lab Update'} required /></div>
-                  <div className="field span-2"><label>Summary</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} required /></div>
+                  <div className="field span-2"><label>News Headline</label><input className="input" name="title" defaultValue={editingItem.data?.title || ''} required /></div>
+                  <div className="field"><label>Publish Date (YYYY-MM-DD)</label><input className="input" name="date" type="date" defaultValue={editingItem.data?.date || new Date().toISOString().slice(0, 10)} required /></div>
+                  <div className="field">
+                    <label>Category</label>
+                    <select className="select" name="category" defaultValue={editingItem.data?.category || 'Lab Update'} required>
+                      <option value="Lab Update">Lab Update</option>
+                      <option value="Publication">Publication</option>
+                      <option value="Presentation">Presentation / Talk</option>
+                      <option value="Award">Award & Recognition</option>
+                      <option value="Opportunity">Opportunity / Hiring</option>
+                      <option value="Event">Event / Workshop</option>
+                    </select>
+                  </div>
+                  <div className="field span-2"><label>Summary & Highlights</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} required /></div>
                 </>
               )}
 
