@@ -24,28 +24,14 @@ export function ThemeAvatar({ src, name, className, style }: ThemeAvatarProps) {
 
   return (
     <div
-      className={`person-visual ${className || ''}`}
-      style={{
-        position: 'relative',
-        display: 'grid',
-        placeItems: 'center',
-        overflow: 'hidden',
-        background: 'var(--surface-soft, rgba(255, 255, 255, 0.04))',
-        ...style
-      }}
+      className={`person-visual ${!src ? 'has-fallback' : ''} ${className || ''}`}
+      style={style}
     >
       {src ? (
         <img
           src={src}
           alt={name}
           loading="lazy"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center 20%',
-            transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
         />
       ) : (
         <div className="avatar-fallback">{initials(name)}</div>
