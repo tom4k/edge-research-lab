@@ -79,7 +79,6 @@ export default function PeoplePage() {
           {filteredPeople.length > 0 ? (
             <div className="grid grid-3">
               {filteredPeople.map((person) => {
-                const personPubs = getPersonPublications(person);
                 return (
                   <article key={person.id} className="card people-card">
                     <ThemeAvatar src={person.image} name={person.name} />
@@ -107,7 +106,7 @@ export default function PeoplePage() {
                           className="button button-small button-outline person-pubs-btn"
                           onClick={() => setModalPerson(person)}
                         >
-                          📚 Publications ({personPubs.length})
+                          Publications
                         </button>
                       </div>
                     </div>
