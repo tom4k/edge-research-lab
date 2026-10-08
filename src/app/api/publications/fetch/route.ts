@@ -166,7 +166,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey = process.env.SERPAPI_KEY || process.env.GOOGLE_SCHOLAR_API_KEY;
+    const apiKey = process.env.SERPAPI_KEY || process.env.SERPAPI || process.env.GOOGLE_SCHOLAR_API_KEY;
     let scholarPubs: any[] = [];
 
     if (apiKey) {
