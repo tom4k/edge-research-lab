@@ -653,7 +653,6 @@ input:checked + .slider:before { transform: translateX(22px); }
   flex-wrap: wrap;
   margin-top: 36px;
   padding-top: 24px;
-  border-top: 1px solid var(--line);
 }
 .pagination-info {
   font-size: 0.88rem;
