@@ -821,10 +821,11 @@ export default function AdminPage() {
                                   </td>
                                   <td>
                                     {(() => {
-                                      const lastName = item.name.split(/\s+/).pop() || item.name;
-                                      const pubCount = data.publications.filter(
-                                        (p) => p.personId === item.id || p.authors.toLowerCase().includes(lastName.toLowerCase())
-                                      ).length;
+                                      const lastName = (item.name || '').trim().split(/\s+/).pop()?.toLowerCase();
+                                      const pubCount = (data.publications || []).filter((p) => {
+                                        if (p.personId) return p.personId === item.id;
+                                        return !!(lastName && lastName.length >= 2 && p.authors?.toLowerCase().includes(lastName));
+                                      }).length;
                                       return (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'flex-start' }}>
                                           <span className="tag" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
@@ -1591,10 +1592,11 @@ export default function AdminPage() {
 
             <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {(() => {
-                const lastName = curatingPerson.name.split(/\s+/).pop() || curatingPerson.name;
-                const personPubs = data.publications.filter(
-                  (p) => p.personId === curatingPerson.id || p.authors.toLowerCase().includes(lastName.toLowerCase())
-                );
+                const lastName = (curatingPerson.name || '').trim().split(/\s+/).pop()?.toLowerCase();
+                const personPubs = (data.publications || []).filter((p) => {
+                  if (p.personId) return p.personId === curatingPerson.id;
+                  return !!(lastName && lastName.length >= 2 && p.authors?.toLowerCase().includes(lastName));
+                });
 
                 if (personPubs.length === 0) {
                   return (

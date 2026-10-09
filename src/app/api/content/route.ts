@@ -93,10 +93,26 @@ export async function POST(request: Request) {
         }
       }
 
-      await prisma.person.deleteMany({});
+      const incomingPersonIds = people.map((p) => p.id);
+      await prisma.person.deleteMany({
+        where: { id: { notIn: incomingPersonIds } }
+      });
       for (const p of people) {
-        await prisma.person.create({
-          data: {
+        await prisma.person.upsert({
+          where: { id: p.id },
+          update: {
+            name: p.name,
+            role: p.role,
+            group: p.group,
+            bio: p.bio || '',
+            interests: p.interests,
+            email: p.email,
+            image: p.image || '',
+            scholarUrl: p.scholarUrl || '',
+            orcid: p.orcid || '',
+            dblpId: p.dblpId || ''
+          },
+          create: {
             id: p.id,
             name: p.name,
             role: p.role,
@@ -115,24 +131,32 @@ export async function POST(request: Request) {
 
     // 4. Sync Publications
     if (Array.isArray(publications)) {
-      await prisma.publication.deleteMany({});
-      for (const pub of publications) {
-        await prisma.publication.create({
-          data: {
-            id: pub.id,
-            title: pub.title,
-            authors: pub.authors,
-            venue: pub.venue,
-            year: pub.year,
-            type: pub.type || 'Journal',
-            doi: pub.doi || '',
-            url: pub.url || '',
-            featured: pub.featured || false,
-            isLabRelevant: pub.isLabRelevant ?? false,
-            externalId: pub.externalId || null,
-            personId: pub.personId || null
-          }
-        });
+      const incomingPubIds = publications.map((pub) => pub.id);
+      await prisma.publication.deleteMany({
+        where: { id: { notIn: incomingPubIds } }
+      });
+
+      if (publications.length > 0) {
+        for (let i = 0; i < publications.length; i += 50) {
+          const chunk = publications.slice(i, i + 50);
+          await prisma.publication.createMany({
+            data: chunk.map((pub) => ({
+              id: pub.id,
+              title: pub.title,
+              authors: pub.authors,
+              venue: pub.venue,
+              year: pub.year,
+              type: pub.type || 'Journal',
+              doi: pub.doi || '',
+              url: pub.url || '',
+              featured: pub.featured || false,
+              isLabRelevant: pub.isLabRelevant ?? false,
+              externalId: pub.externalId || null,
+              personId: pub.personId || null
+            })),
+            skipDuplicates: true
+          });
+        }
       }
     }
 

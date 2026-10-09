@@ -27,10 +27,13 @@ export default function PeoplePage() {
   }, [data.people, searchTerm, selectedGroup]);
 
   const getPersonPublications = (person: Person) => {
-    const lastName = person.name.split(/\s+/).pop() || person.name;
-    return data.publications.filter(
-      (pub) => pub.personId === person.id || pub.authors.toLowerCase().includes(lastName.toLowerCase())
-    );
+    const lastName = (person.name || '').trim().split(/\s+/).pop()?.toLowerCase();
+    return (data.publications || []).filter((pub) => {
+      if (pub.personId) {
+        return pub.personId === person.id;
+      }
+      return !!(lastName && lastName.length >= 2 && pub.authors?.toLowerCase().includes(lastName));
+    });
   };
 
   const initials = (name: string) => {

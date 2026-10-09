@@ -248,10 +248,10 @@ export async function POST(request: Request) {
         where: { personId }
       });
 
-      // Insert the clean Google Scholar publications
-      for (const pub of finalPublications) {
-        await prisma.publication.create({
-          data: {
+      // Insert the clean Google Scholar publications in a single fast batch
+      if (finalPublications.length > 0) {
+        await prisma.publication.createMany({
+          data: finalPublications.map((pub) => ({
             id: pub.id,
             title: pub.title,
             authors: pub.authors,
@@ -264,11 +264,14 @@ export async function POST(request: Request) {
             isLabRelevant: pub.isLabRelevant,
             externalId: pub.externalId,
             personId
-          }
+          })),
+          skipDuplicates: true
         });
       }
 
       revalidatePath('/', 'layout');
+      revalidatePath('/people');
+      revalidatePath('/publications');
     }
 
     return NextResponse.json({
