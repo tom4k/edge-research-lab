@@ -33,11 +33,26 @@ export function normalizeTitle(title?: string): string {
 }
 
 /**
+ * Formats a publication count into 5's+ milestone buckets as requested:
+ * - 25 publications -> "20+"
+ * - 38 publications -> "35+"
+ * - e.g. if count is 21-25 -> "20+", if 36-40 -> "35+"
+ * - 0 publications -> "0"
+ * - count under 5 -> `${count}+`
+ */
+export function formatPublicationMilestone(count: number): string {
+  if (count <= 0) return '0';
+  if (count < 5) return `${count}+`;
+  const milestone = Math.floor((count - 1) / 5) * 5;
+  return `${milestone > 0 ? milestone : 5}+`;
+}
+
+/**
  * Deduplicates lab-relevant publications so that papers co-authored by multiple
  * members of the lab only appear once.
  * 
  * 1. Uses DOI (primary globally-unique identifier) to identify duplicate entries.
- * 2. Uses normalized Title + Year as a fallback when DOI is absent.
+ * 2. Uses normalized Title (or Title + Year) as a fallback when DOI is absent.
  * 3. Intelligently merges metadata (preserves featured flag, DOI, URLs, and richer author/venue text).
  */
 export function getUniqueLabPublications(publications: Publication[]): Publication[] {
@@ -52,7 +67,9 @@ export function getUniqueLabPublications(publications: Publication[]): Publicati
   for (const pub of labRelevant) {
     const normDoi = normalizeDoi(pub.doi);
     const normTitle = normalizeTitle(pub.title);
-    const titleKey = normTitle ? `${normTitle}::${(pub.year || '').trim()}` : '';
+    const titleKey = normTitle.length >= 15 
+      ? normTitle 
+      : (normTitle ? `${normTitle}::${(pub.year || '').trim()}` : '');
 
     let existing: Publication | undefined;
 
@@ -60,7 +77,7 @@ export function getUniqueLabPublications(publications: Publication[]): Publicati
     if (normDoi && seenDoiMap.has(normDoi)) {
       existing = seenDoiMap.get(normDoi);
     }
-    // 2. Fallback match: by Title + Year
+    // 2. Fallback match: by Title (or Title + Year)
     else if (titleKey && seenTitleMap.has(titleKey)) {
       existing = seenTitleMap.get(titleKey);
     }

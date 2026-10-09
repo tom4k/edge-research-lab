@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { sql } from '@/lib/db';
 import { seedData } from '@/lib/seedData';
 import { LabData } from '@/lib/types';
-import { getUniqueLabPublications } from '@/lib/publicationUtils';
+import { getUniqueLabPublications, formatPublicationMilestone } from '@/lib/publicationUtils';
 
 export async function getLabData(): Promise<LabData> {
   // Ensure this function is only executed on the server side
@@ -96,11 +96,7 @@ export async function getLabData(): Promise<LabData> {
       },
       stats: [
         {
-          value: `${
-            getUniqueLabPublications(publicationsDb as any[]).length > 0
-              ? getUniqueLabPublications(publicationsDb as any[]).length + '+'
-              : '0'
-          }`,
+          value: formatPublicationMilestone(getUniqueLabPublications(publicationsDb as any[]).length),
           label: 'Peer-reviewed publications'
         },
         { value: `${peopleDb.filter((p: any) => p.group !== 'Alumni').length}`, label: 'Active researchers' },

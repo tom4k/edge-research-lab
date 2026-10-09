@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { Publication } from '@/lib/types';
-import { getUniqueLabPublications } from '@/lib/publicationUtils';
+import { getUniqueLabPublications, formatPublicationMilestone } from '@/lib/publicationUtils';
 
 export default function HomePage() {
   const { data } = useData();
@@ -53,7 +53,7 @@ export default function HomePage() {
 
   const displayStats = [
     {
-      value: pubCount > 0 ? `${pubCount}+` : '0',
+      value: formatPublicationMilestone(pubCount),
       label: 'Peer-reviewed publications'
     },
     {
