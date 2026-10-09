@@ -161,13 +161,20 @@ export default function AdminPage() {
   return (
     <div className="page admin-shell">
       <aside className="admin-sidebar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <img src="/images/logo-icon.png" alt="EdgeInt Lab" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>EdgeInt Lab</h2>
-            <small style={{ color: 'var(--muted)', fontSize: '0.75rem' }}>Management Console</small>
-          </div>
-        </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'block', marginBottom: '16px' }} title="Visit Website">
+          <img
+            src="/images/logo.png"
+            alt="EdgeInt Lab"
+            className="site-logo site-logo-dark"
+            style={{ height: '42px' }}
+          />
+          <img
+            src="/images/logo-light.png"
+            alt="EdgeInt Lab"
+            className="site-logo site-logo-light"
+            style={{ height: '42px' }}
+          />
+        </Link>
         <div className="admin-user-profile">
           <strong>{user.name}</strong>
           <span className={`role-badge ${user.role}`}>

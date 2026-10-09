@@ -38,25 +38,15 @@ export const SiteHeader: React.FC = () => {
     <header className="site-header" id="site-header">
       <Link className="brand" href="/" aria-label={`${s.labName} home`}>
         <img
-          src="/images/logo-icon.png"
-          alt={s.shortName}
-          className="brand-logo-img"
-          width={40}
-          height={40}
+          src="/images/logo.png"
+          alt={s.labName}
+          className="site-logo site-logo-dark"
         />
-        <span>
-          <strong id="brand-name">
-            {s.shortName.includes('Lab') ? (
-              <>
-                {s.shortName.replace(/Lab$/i, '').trim()}{' '}
-                <span style={{ color: 'var(--primary)' }}>Lab</span>
-              </>
-            ) : (
-              s.shortName
-            )}
-          </strong>
-          <small id="brand-subtitle">{s.subtitle}</small>
-        </span>
+        <img
+          src="/images/logo-light.png"
+          alt={s.labName}
+          className="site-logo site-logo-light"
+        />
       </Link>
 
       <button
