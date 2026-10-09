@@ -33,6 +33,7 @@ model LabSetting {
   location        String   @default("Department of Computer Science and Engineering")
   website         String   @default("https://example.edu")
   themePreset     String   @default("cyber-blue") @map("theme_preset")
+  themeMode       String   @default("dark") @map("theme_mode")
   activePages     Json     @map("active_pages")
   updatedAt       DateTime @updatedAt @map("updated_at")
 

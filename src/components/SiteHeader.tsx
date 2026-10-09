@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useData } from '@/context/DataContext';
@@ -9,7 +9,6 @@ export const SiteHeader: React.FC = () => {
   const { data } = useData();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const s = data.settings;
   if (pathname?.startsWith('/admin')) {
@@ -22,24 +21,6 @@ export const SiteHeader: React.FC = () => {
     projects: true,
     news: true,
     contact: true
-  };
-
-  useEffect(() => {
-    const savedTheme = (localStorage.getItem('edgesys-theme') as 'light' | 'dark') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setTheme(savedTheme);
-    document.documentElement.dataset.theme = savedTheme;
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.themePreset = s.themePreset || 'cyber-blue';
-  }, [s.themePreset]);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
-    localStorage.setItem('edgesys-theme', nextTheme);
   };
 
   const navItems = [
@@ -92,19 +73,6 @@ export const SiteHeader: React.FC = () => {
           </Link>
         ))}
       </nav>
-
-      <div className="header-actions">
-        <button
-          className="icon-button"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          title="Toggle theme"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20.7 14.1A8.3 8.3 0 0 1 9.9 3.3 8.7 8.7 0 1 0 20.7 14Z" />
-          </svg>
-        </button>
-      </div>
     </header>
   );
 };

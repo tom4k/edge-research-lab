@@ -24,7 +24,11 @@ export default async function RootLayout({
   const initialData = await getLabData();
 
   return (
-    <html lang="en" data-theme="dark">
+    <html
+      lang="en"
+      data-theme={initialData.settings.themeMode || 'dark'}
+      data-theme-preset={initialData.settings.themePreset || 'cyber-blue'}
+    >
       <body>
         <a className="skip-link" href="#main-content">
           Skip to content

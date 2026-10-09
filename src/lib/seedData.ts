@@ -35,6 +35,7 @@ export const seedData: LabData = {
     location: 'Department of Computer Science and Engineering, Your Institution',
     website: 'https://example.edu',
     themePreset: 'cyber-blue',
+    themeMode: 'dark',
     activePages: {
       research: true,
       people: true,

@@ -32,6 +32,7 @@ export interface LabSettings {
   location: string;
   website: string;
   themePreset?: string;
+  themeMode?: 'dark' | 'light';
   activePages: PageVisibilityMap;
 }
 

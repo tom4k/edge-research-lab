@@ -177,15 +177,13 @@ export default function AdminPage() {
             Page Activation
           </button>
           {isSuperAdmin && (
-            <>
-              <button className={adminSection === 'users' ? 'active' : ''} onClick={() => setAdminSection('users')}>
-                User Management
-              </button>
-              <button className={adminSection === 'theme' ? 'active' : ''} onClick={() => setAdminSection('theme')}>
-                Website Theme
-              </button>
-            </>
+            <button className={adminSection === 'users' ? 'active' : ''} onClick={() => setAdminSection('users')}>
+              User Management
+            </button>
           )}
+          <button className={adminSection === 'theme' ? 'active' : ''} onClick={() => setAdminSection('theme')}>
+            Website Theme
+          </button>
           <button className={adminSection === 'settings' ? 'active' : ''} onClick={() => setAdminSection('settings')}>
             Site Settings
           </button>
@@ -390,18 +388,86 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* WEBSITE THEME SELECTION (SUPER ADMIN ONLY) */}
-        {adminSection === 'theme' && isSuperAdmin && (
+        {/* WEBSITE THEME & MODE SELECTION */}
+        {adminSection === 'theme' && (
           <div>
             <div className="admin-topbar">
               <div>
-                <span className="eyebrow">Super Admin Exclusive</span>
-                <h1>Website Theme Preset</h1>
+                <span className="eyebrow">Design & Appearance</span>
+                <h1>Website Theme & Mode</h1>
               </div>
             </div>
             <div className="admin-panel">
-              <p style={{ marginBottom: '24px' }}>
-                Select a site-wide color palette theme for the website. The chosen theme will update CSS variables globally across all pages for every visitor.
+              {/* Theme Mode Toggle (Dark / Light) */}
+              <div style={{ marginBottom: '32px', paddingBottom: '28px', borderBottom: '1px solid var(--line)' }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>Appearance Mode</h3>
+                <p style={{ margin: '0 0 20px 0', color: 'var(--muted)', fontSize: '0.95rem' }}>
+                  Choose whether the website operates in Dark Mode (default) or Light Mode for all visitors. The public theme toggle has been shifted here.
+                </p>
+
+                <div className="grid grid-2" style={{ maxWidth: '680px' }}>
+                  <div
+                    className="card"
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: (data.settings.themeMode || 'dark') === 'dark' ? 'var(--primary)' : 'var(--line)',
+                      borderWidth: (data.settings.themeMode || 'dark') === 'dark' ? '2px' : '1px',
+                      background: (data.settings.themeMode || 'dark') === 'dark' ? 'color-mix(in srgb, var(--primary) 10%, var(--surface))' : 'var(--surface)'
+                    }}
+                    onClick={() => updateSettings({ themeMode: 'dark' })}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <strong style={{ fontSize: '1.05rem' }}>🌙 Dark Mode</strong>
+                      {(data.settings.themeMode || 'dark') === 'dark' && (
+                        <span className="tag" style={{ background: 'var(--primary)', color: 'white' }}>Active Default</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--muted)', marginBottom: '14px' }}>
+                      Deep high-tech aesthetic with glowing accents. (Default)
+                    </p>
+                    <button
+                      type="button"
+                      className={`button button-small ${(data.settings.themeMode || 'dark') === 'dark' ? 'button-secondary' : 'button-outline'}`}
+                      disabled={(data.settings.themeMode || 'dark') === 'dark'}
+                    >
+                      {(data.settings.themeMode || 'dark') === 'dark' ? 'Currently Applied' : 'Set as Active'}
+                    </button>
+                  </div>
+
+                  <div
+                    className="card"
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: (data.settings.themeMode || 'dark') === 'light' ? 'var(--primary)' : 'var(--line)',
+                      borderWidth: (data.settings.themeMode || 'dark') === 'light' ? '2px' : '1px',
+                      background: (data.settings.themeMode || 'dark') === 'light' ? 'color-mix(in srgb, var(--primary) 10%, var(--surface))' : 'var(--surface)'
+                    }}
+                    onClick={() => updateSettings({ themeMode: 'light' })}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <strong style={{ fontSize: '1.05rem' }}>☀️ Light Mode</strong>
+                      {(data.settings.themeMode || 'dark') === 'light' && (
+                        <span className="tag" style={{ background: 'var(--primary)', color: 'white' }}>Active</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--muted)', marginBottom: '14px' }}>
+                      Clean academic white background with sharp contrast and readable typography.
+                    </p>
+                    <button
+                      type="button"
+                      className={`button button-small ${(data.settings.themeMode || 'dark') === 'light' ? 'button-secondary' : 'button-outline'}`}
+                      disabled={(data.settings.themeMode || 'dark') === 'light'}
+                    >
+                      {(data.settings.themeMode || 'dark') === 'light' ? 'Currently Applied' : 'Set as Active'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Color Preset */}
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>Color Palette Preset</h3>
+              <p style={{ margin: '0 0 20px 0', color: 'var(--muted)', fontSize: '0.95rem' }}>
+                Select a site-wide color palette theme for the website. The chosen palette updates CSS variables globally across all pages for every visitor.
               </p>
 
               <div className="grid grid-2">
@@ -499,6 +565,13 @@ export default function AdminPage() {
               <div className="field">
                 <label>Phone</label>
                 <input className="input" name="phone" defaultValue={data.settings.phone} />
+              </div>
+              <div className="field">
+                <label>Appearance Mode</label>
+                <select className="select" name="themeMode" defaultValue={data.settings.themeMode || 'dark'}>
+                  <option value="dark">Dark Mode (Default)</option>
+                  <option value="light">Light Mode</option>
+                </select>
               </div>
               <div className="field">
                 <label>Theme Preset</label>

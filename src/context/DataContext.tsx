@@ -89,6 +89,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
       .catch(() => {});
   }, []);
 
+  // Synchronize document theme attributes with settings (dark by default)
+  useEffect(() => {
+    if (typeof document !== 'undefined' && data?.settings) {
+      const mode = data.settings.themeMode || 'dark';
+      const preset = data.settings.themePreset || 'cyber-blue';
+      document.documentElement.dataset.theme = mode;
+      document.documentElement.dataset.themePreset = preset;
+    }
+  }, [data?.settings?.themeMode, data?.settings?.themePreset]);
+
   const syncToDatabase = useCallback((nextData: LabData) => {
     fetch('/api/content', {
       method: 'POST',
