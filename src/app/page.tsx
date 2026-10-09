@@ -34,13 +34,20 @@ export default function HomePage() {
   };
 
   const pubCount = data.publications
-    ? data.publications.filter((p) => p.isLabRelevant !== false).length
+    ? data.publications.filter((p) => Boolean(p.isLabRelevant)).length
     : 0;
   const activeResearchersCount = data.people
     ? data.people.filter((p) => p.group !== 'Alumni').length
     : 0;
   const projectCount = data.projects ? data.projects.length : 0;
   const patentCount = data.patents ? data.patents.length : 0;
+
+  const recentPublications = React.useMemo(() => {
+    return (data.publications || [])
+      .filter((p) => Boolean(p.isLabRelevant))
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
+      .slice(0, 3);
+  }, [data.publications]);
 
   const displayStats = [
     {
@@ -171,47 +178,51 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div>
-          {data.publications.slice(0, 3).map((pub) => (
-            <article key={pub.id} className="publication-item">
-              <div className="publication-year">{pub.year || '—'}</div>
-              <div>
-                <span className="tag">{pub.type}</span>
-                <h3>{pub.title}</h3>
-                <div className="publication-authors">{pub.authors}</div>
-                <div className="publication-venue">{pub.venue}</div>
-              </div>
-              <div className="publication-actions">
-                {pub.doi && (
-                  <a
-                    className="button button-small button-outline"
-                    href={`https://doi.org/${pub.doi}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+        {recentPublications.length > 0 ? (
+          <div>
+            {recentPublications.map((pub) => (
+              <article key={pub.id} className="publication-item">
+                <div className="publication-year">{pub.year || '—'}</div>
+                <div>
+                  <span className="tag">{pub.type}</span>
+                  <h3>{pub.title}</h3>
+                  <div className="publication-authors">{pub.authors}</div>
+                  <div className="publication-venue">{pub.venue}</div>
+                </div>
+                <div className="publication-actions">
+                  {pub.doi && (
+                    <a
+                      className="button button-small button-outline"
+                      href={`https://doi.org/${pub.doi}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      DOI
+                    </a>
+                  )}
+                  {pub.url && (
+                    <a
+                      className="button button-small button-outline"
+                      href={pub.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View Paper
+                    </a>
+                  )}
+                  <button
+                    className="button button-small button-secondary"
+                    onClick={() => copyCitation(pub)}
                   >
-                    DOI
-                  </a>
-                )}
-                {pub.url && (
-                  <a
-                    className="button button-small button-outline"
-                    href={pub.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View Paper
-                  </a>
-                )}
-                <button
-                  className="button button-small button-secondary"
-                  onClick={() => copyCitation(pub)}
-                >
-                  Copy citation
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                    Copy citation
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">No lab-relevant publications available yet.</div>
+        )}
       </section>
 
       <section className="section section-tight">
