@@ -33,10 +33,10 @@ export default async function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <EdgeMeshCanvas />
         <ToastProvider>
           <AuthProvider>
             <DataProvider initialData={initialData}>
+              <EdgeMeshCanvas />
               <SiteHeader />
               <main id="main-content" tabIndex={-1}>
                 {children}

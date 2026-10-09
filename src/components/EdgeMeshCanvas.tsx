@@ -1,9 +1,116 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { useData } from '@/context/DataContext';
+
+const PRESET_COLORS: Record<string, { dark: [number, number, number][]; light: [number, number, number][] }> = {
+  'cyber-blue': {
+    dark: [[13, 99, 255], [19, 200, 194], [139, 92, 246], [56, 189, 248]],
+    light: [[13, 99, 255], [15, 160, 155], [99, 102, 241], [2, 132, 199]]
+  },
+  'emerald-green': {
+    dark: [[5, 150, 105], [16, 185, 129], [52, 211, 153], [132, 204, 22]],
+    light: [[4, 120, 87], [5, 150, 105], [16, 185, 129], [22, 101, 52]]
+  },
+  'violet-nebula': {
+    dark: [[139, 92, 246], [244, 63, 94], [192, 132, 252], [251, 113, 133]],
+    light: [[124, 58, 237], [225, 29, 72], [109, 40, 217], [190, 18, 60]]
+  },
+  'amber-gold': {
+    dark: [[217, 119, 6], [245, 158, 11], [251, 191, 36], [234, 88, 12]],
+    light: [[180, 83, 9], [217, 119, 6], [194, 65, 12], [245, 158, 11]]
+  },
+  'ruby-crimson': {
+    dark: [[225, 29, 72], [251, 113, 133], [244, 63, 94], [239, 68, 68]],
+    light: [[190, 18, 60], [225, 29, 72], [159, 18, 57], [244, 63, 94]]
+  },
+  'midnight-cyan': {
+    dark: [[6, 182, 212], [56, 189, 248], [14, 165, 233], [45, 212, 191]],
+    light: [[8, 145, 178], [2, 132, 199], [13, 148, 136], [56, 189, 248]]
+  },
+  'forest-pine': {
+    dark: [[21, 128, 61], [132, 204, 22], [34, 197, 94], [163, 230, 53]],
+    light: [[22, 101, 52], [101, 163, 13], [21, 128, 61], [77, 124, 15]]
+  },
+  'sunset-coral': {
+    dark: [[249, 115, 22], [251, 191, 36], [244, 63, 94], [234, 88, 12]],
+    light: [[234, 88, 12], [217, 119, 6], [225, 29, 72], [194, 65, 12]]
+  },
+  'mono-obsidian': {
+    dark: [[56, 189, 248], [148, 163, 184], [203, 213, 225], [94, 234, 212]],
+    light: [[2, 132, 199], [71, 85, 105], [100, 116, 139], [15, 118, 110]]
+  },
+  'synth-indigo': {
+    dark: [[79, 70, 229], [236, 72, 153], [129, 140, 248], [244, 114, 182]],
+    light: [[67, 56, 202], [219, 39, 119], [79, 70, 229], [190, 24, 93]]
+  }
+};
+
+function getThemePalette(mode: 'dark' | 'light', preset: string) {
+  const presetKey = PRESET_COLORS[preset] ? preset : 'cyber-blue';
+  const modeKey = mode === 'light' ? 'light' : 'dark';
+  const rgbList = PRESET_COLORS[presetKey][modeKey] || PRESET_COLORS['cyber-blue'][modeKey];
+  const colorStrings = rgbList.map(([r, g, b]) => `rgba(${r}, ${g}, ${b}, `);
+
+  const isDark = modeKey === 'dark';
+  return {
+    isDark,
+    colorStrings,
+    gridColor: isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(16, 33, 63, 0.055)',
+    glowColor: colorStrings[0],
+    rippleColor: colorStrings[1] || colorStrings[0],
+    particleColor: colorStrings[3] || colorStrings[0],
+    canvasOpacity: isDark ? 0.75 : 0.6
+  };
+}
 
 export function EdgeMeshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { data } = useData();
+
+  const currentMode = (data.settings?.themeMode as 'light' | 'dark') || 'dark';
+  const currentPreset = data.settings?.themePreset || 'cyber-blue';
+
+  const paletteRef = useRef(getThemePalette(currentMode, currentPreset));
+  const beamsRef = useRef<Array<{
+    x: number;
+    y: number;
+    speed: number;
+    length: number;
+    axis: 'horizontal' | 'vertical';
+    colorIndex: number;
+  }>>([]);
+
+  // Sync palette whenever mode or preset changes
+  useEffect(() => {
+    const nextPalette = getThemePalette(currentMode, currentPreset);
+    paletteRef.current = nextPalette;
+    if (canvasRef.current) {
+      canvasRef.current.style.opacity = String(nextPalette.canvasOpacity);
+    }
+  }, [currentMode, currentPreset]);
+
+  // Also listen to document attribute changes (e.g. for instant theme changes)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const observer = new MutationObserver(() => {
+      const mode = (document.documentElement.dataset.theme as 'light' | 'dark') || 'dark';
+      const preset = document.documentElement.dataset.themePreset || 'cyber-blue';
+      const nextPalette = getThemePalette(mode, preset);
+      paletteRef.current = nextPalette;
+      if (canvasRef.current) {
+        canvasRef.current.style.opacity = String(nextPalette.canvasOpacity);
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'data-theme-preset']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,30 +167,18 @@ export function EdgeMeshCanvas() {
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     // Grid / Wave Signal Beams
-    interface Beam {
-      x: number;
-      y: number;
-      speed: number;
-      length: number;
-      axis: 'horizontal' | 'vertical';
-      color: string;
-    }
-
-    const beams: Beam[] = [];
-    const colors = ['rgba(13, 99, 255, ', 'rgba(19, 200, 194, ', 'rgba(139, 92, 246, ', 'rgba(56, 189, 248, '];
-
     const initBeams = () => {
-      beams.length = 0;
+      beamsRef.current = [];
       const count = 14;
       for (let i = 0; i < count; i++) {
         const isHoriz = Math.random() > 0.5;
-        beams.push({
+        beamsRef.current.push({
           x: Math.random() * width,
           y: Math.random() * height,
           speed: (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1),
           length: Math.random() * 180 + 100,
           axis: isHoriz ? 'horizontal' : 'vertical',
-          color: colors[i % colors.length]
+          colorIndex: i
         });
       }
     };
@@ -106,6 +201,9 @@ export function EdgeMeshCanvas() {
     const render = () => {
       time += 0.015;
       ctx.clearRect(0, 0, width, height);
+
+      const palette = paletteRef.current;
+      const colors = palette.colorStrings;
 
       // Smooth mouse position
       mouse.x += (mouse.targetX - mouse.x) * 0.08;
@@ -130,7 +228,7 @@ export function EdgeMeshCanvas() {
           else ctx.lineTo(x, y);
         }
 
-        const alpha = 0.05 + w * 0.02;
+        const alpha = palette.isDark ? (0.05 + w * 0.02) : (0.06 + w * 0.025);
         ctx.strokeStyle = colors[w % colors.length] + `${alpha})`;
         ctx.lineWidth = 1.8;
         ctx.stroke();
@@ -141,7 +239,7 @@ export function EdgeMeshCanvas() {
       const startY = - (currentScroll % gridSize);
 
       ctx.lineWidth = 0.5;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+      ctx.strokeStyle = palette.gridColor;
 
       // Vertical lines
       for (let x = 0; x < width; x += gridSize) {
@@ -160,15 +258,17 @@ export function EdgeMeshCanvas() {
       }
 
       // 3. Grid Beams (Traveling Energy Pulses)
+      const beams = beamsRef.current;
       for (let i = 0; i < beams.length; i++) {
         const b = beams[i];
+        const beamColor = colors[b.colorIndex % colors.length];
         const grad = b.axis === 'horizontal' 
           ? ctx.createLinearGradient(b.x, b.y, b.x + b.length, b.y)
           : ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.length);
 
-        grad.addColorStop(0, b.color + '0)');
-        grad.addColorStop(0.5, b.color + '0.5)');
-        grad.addColorStop(1, b.color + '0)');
+        grad.addColorStop(0, beamColor + '0)');
+        grad.addColorStop(0.5, beamColor + (palette.isDark ? '0.55)' : '0.45)'));
+        grad.addColorStop(1, beamColor + '0)');
 
         ctx.beginPath();
         if (b.axis === 'horizontal') {
@@ -179,7 +279,7 @@ export function EdgeMeshCanvas() {
           if (b.x < -b.length) b.x = width + b.length;
         } else {
           ctx.moveTo(b.x, b.y);
-          ctx.lineTo(b.x, b.y + b.length);
+          ctx.lineTo(b.x + b.length, b.y);
           b.y += b.speed;
           if (b.y > height + b.length) b.y = -b.length;
           if (b.y < -b.length) b.y = height + b.length;
@@ -202,7 +302,7 @@ export function EdgeMeshCanvas() {
 
         ctx.beginPath();
         ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(19, 200, 194, ${rip.opacity})`;
+        ctx.strokeStyle = palette.rippleColor + `${rip.opacity})`;
         ctx.lineWidth = 1.2;
         ctx.stroke();
       }
@@ -210,8 +310,8 @@ export function EdgeMeshCanvas() {
       // 5. Mouse Ambient Interactive Glow
       if (mouse.active) {
         const mGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 200);
-        mGlow.addColorStop(0, 'rgba(13, 99, 255, 0.14)');
-        mGlow.addColorStop(0.5, 'rgba(19, 200, 194, 0.05)');
+        mGlow.addColorStop(0, palette.glowColor + (palette.isDark ? '0.14)' : '0.09)'));
+        mGlow.addColorStop(0.5, palette.rippleColor + (palette.isDark ? '0.05)' : '0.03)'));
         mGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.fillStyle = mGlow;
@@ -234,7 +334,7 @@ export function EdgeMeshCanvas() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(56, 189, 248, ${Math.max(0, currentAlpha)})`;
+        ctx.fillStyle = palette.particleColor + `${Math.max(0, currentAlpha)})`;
         ctx.fill();
       }
 
@@ -262,7 +362,8 @@ export function EdgeMeshCanvas() {
         height: '100vh',
         pointerEvents: 'none',
         zIndex: 0,
-        opacity: 0.75
+        opacity: paletteRef.current.canvasOpacity,
+        transition: 'opacity 0.4s ease'
       }}
     />
   );
