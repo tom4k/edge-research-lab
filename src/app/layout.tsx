@@ -10,8 +10,8 @@ import { getLabData } from '@/lib/getLabData';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'EdgeSys Research Lab',
-  description: 'EdgeSys Research Lab — research in edge, fog, distributed and intelligent computing.'
+  title: 'EdgeInt Lab',
+  description: 'EdgeInt Lab — Intelligence for and at the Edge.'
 };
 
 import { EdgeMeshCanvas } from '@/components/EdgeMeshCanvas';

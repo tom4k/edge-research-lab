@@ -37,15 +37,24 @@ export const SiteHeader: React.FC = () => {
   return (
     <header className="site-header" id="site-header">
       <Link className="brand" href="/" aria-label={`${s.labName} home`}>
-        <span className="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 48 48" role="img">
-            <path d="M24 5 40 14v20L24 43 8 34V14L24 5Z" />
-            <circle cx="24" cy="24" r="5" />
-            <path d="M24 9v10M24 29v10M12 16l8 5M28 27l8 5M36 16l-8 5M20 27l-8 5" />
-          </svg>
-        </span>
+        <img
+          src="/images/logo-icon.png"
+          alt={s.shortName}
+          className="brand-logo-img"
+          width={40}
+          height={40}
+        />
         <span>
-          <strong id="brand-name">{s.shortName}</strong>
+          <strong id="brand-name">
+            {s.shortName.includes('Lab') ? (
+              <>
+                {s.shortName.replace(/Lab$/i, '').trim()}{' '}
+                <span style={{ color: 'var(--primary)' }}>Lab</span>
+              </>
+            ) : (
+              s.shortName
+            )}
+          </strong>
           <small id="brand-subtitle">{s.subtitle}</small>
         </span>
       </Link>

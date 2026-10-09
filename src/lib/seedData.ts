@@ -23,10 +23,10 @@ export const initialAdminUsers: (AdminUser & { passwordHash: string })[] = [
 
 export const seedData: LabData = {
   settings: {
-    labName: 'EdgeSys Research Lab',
-    shortName: 'EdgeSys Lab',
-    subtitle: 'Intelligent Distributed Computing',
-    tagline: 'Research beyond the cloud.',
+    labName: 'EdgeInt Research Lab',
+    shortName: 'EdgeInt Lab',
+    subtitle: 'Intelligence for and at the Edge',
+    tagline: 'Intelligence for and at the edge',
     heroTitle: 'Building intelligence at the edge of the network.',
     heroDescription: 'We design adaptive, efficient, and dependable computing systems spanning devices, vehicles, UAVs, edge servers, and the cloud.',
     description: 'Advancing edge intelligence, distributed systems, and dependable computing.',

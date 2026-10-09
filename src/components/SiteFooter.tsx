@@ -27,14 +27,24 @@ export const SiteFooter: React.FC = () => {
     <footer className="site-footer">
       <div>
         <Link className="brand footer-brand" href="/">
-          <span className="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 48 48">
-              <path d="M24 5 40 14v20L24 43 8 34V14L24 5Z" />
-              <circle cx="24" cy="24" r="5" />
-            </svg>
-          </span>
+          <img
+            src="/images/logo-icon.png"
+            alt={s.shortName}
+            className="brand-logo-img"
+            width={40}
+            height={40}
+          />
           <span>
-            <strong>{s.shortName}</strong>
+            <strong id="footer-brand-name">
+              {s.shortName.includes('Lab') ? (
+                <>
+                  {s.shortName.replace(/Lab$/i, '').trim()}{' '}
+                  <span style={{ color: 'var(--primary)' }}>Lab</span>
+                </>
+              ) : (
+                s.shortName
+              )}
+            </strong>
             <small>{s.tagline}</small>
           </span>
         </Link>
