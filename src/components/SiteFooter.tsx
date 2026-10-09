@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 
 export const SiteFooter: React.FC = () => {
   const pathname = usePathname();
-  const { data, resetDemoData } = useData();
+  const { data } = useData();
 
   if (pathname?.startsWith('/admin')) {
     return null;
@@ -56,20 +56,6 @@ export const SiteFooter: React.FC = () => {
         <a href={`mailto:${s.email}`}>{s.email}</a>
         <span>{s.location}</span>
         {active.contact && <Link href="/contact">Contact the lab</Link>}
-      </div>
-
-      <div>
-        <h3>Settings</h3>
-        <button
-          className="text-button"
-          onClick={() => {
-            if (confirm('Reset all content to original demonstration data?')) {
-              resetDemoData();
-            }
-          }}
-        >
-          Reset demo data
-        </button>
       </div>
 
       <p className="copyright">

@@ -428,7 +428,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .modal-header h2 { margin: 0; }
 
-.site-footer { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 42px; padding: 70px max(24px, calc((100vw - var(--max-width)) / 2)) 30px; background: var(--navy); color: white; }
+.site-footer { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 42px; padding: 70px max(24px, calc((100vw - var(--max-width)) / 2)) 30px; background: var(--navy); color: white; }
 .site-footer h3 { font-size: .82rem; text-transform: uppercase; letter-spacing: .11em; color: #8498b5; }
 .site-footer > div { display: grid; align-content: start; gap: 10px; }
 .site-footer p, .site-footer a, .site-footer span, .site-footer button { color: #a9b9cf; }

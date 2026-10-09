@@ -90,7 +90,7 @@ export default function ContactPage() {
                   rel="noopener noreferrer"
                   style={{ borderColor: 'rgba(255, 255, 255, 0.2)', color: '#fff' }}
                 >
-                  Visit Website
+                  Institute website
                 </a>
               )}
             </div>
