@@ -9,6 +9,7 @@ import { GalleryItem } from '@/lib/types';
 export default function GalleryPage() {
   const { data } = useData();
   const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const galleryItems: GalleryItem[] = data.gallery || [];
@@ -17,17 +18,29 @@ export default function GalleryPage() {
     setMounted(true);
   }, []);
 
+  const openLightbox = (index: number) => {
+    setIsZoomed(false);
+    setActiveLightboxIndex(index);
+  };
+
+  const closeLightbox = () => {
+    setIsZoomed(false);
+    setActiveLightboxIndex(null);
+  };
+
   // Keyboard navigation for Lightbox
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (activeLightboxIndex === null) return;
       if (e.key === 'Escape') {
-        setActiveLightboxIndex(null);
+        closeLightbox();
       } else if (e.key === 'ArrowRight') {
+        setIsZoomed(false);
         setActiveLightboxIndex((prev) =>
           prev !== null && prev < galleryItems.length - 1 ? prev + 1 : 0
         );
       } else if (e.key === 'ArrowLeft') {
+        setIsZoomed(false);
         setActiveLightboxIndex((prev) =>
           prev !== null && prev > 0 ? prev - 1 : galleryItems.length - 1
         );
@@ -67,8 +80,8 @@ export default function GalleryPage() {
           </p>
         </section>
 
-        {/* Pure Image Gallery Grid */}
-        <section className="section">
+        {/* Pure Image Gallery Grid — Large Tiles */}
+        <section className="gallery-section">
           {galleryItems.length === 0 ? (
             <div className="empty-state">
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🖼️</div>
@@ -83,14 +96,14 @@ export default function GalleryPage() {
                 <article
                   key={item.id}
                   className="gallery-card"
-                  onClick={() => setActiveLightboxIndex(index)}
+                  onClick={() => openLightbox(index)}
                   tabIndex={0}
                   role="button"
                   aria-label="View large photo"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      setActiveLightboxIndex(index);
+                      openLightbox(index);
                     }
                   }}
                 >
@@ -118,7 +131,7 @@ export default function GalleryPage() {
           createPortal(
             <div
               className="lightbox-backdrop"
-              onClick={() => setActiveLightboxIndex(null)}
+              onClick={closeLightbox}
               role="dialog"
               aria-modal="true"
               aria-label="Photo viewer"
@@ -129,7 +142,7 @@ export default function GalleryPage() {
                 className="lightbox-close-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveLightboxIndex(null);
+                  closeLightbox();
                 }}
                 aria-label="Close photo viewer"
                 title="Close (Esc)"
@@ -144,6 +157,7 @@ export default function GalleryPage() {
                   className="lightbox-nav-btn lightbox-prev"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setIsZoomed(false);
                     setActiveLightboxIndex(
                       activeLightboxIndex > 0
                         ? activeLightboxIndex - 1
@@ -160,7 +174,7 @@ export default function GalleryPage() {
               {/* Centered Large Image */}
               <div
                 className="lightbox-content"
-                onClick={() => setActiveLightboxIndex(null)}
+                onClick={closeLightbox}
               >
                 <div
                   className="lightbox-img-wrapper"
@@ -169,7 +183,12 @@ export default function GalleryPage() {
                   <img
                     src={activeItem.imageUrl}
                     alt="Gallery photo large view"
-                    className="lightbox-img"
+                    className={`lightbox-img ${isZoomed ? 'zoomed' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsZoomed((prev) => !prev);
+                    }}
+                    title={isZoomed ? 'Click to reset zoom' : 'Click to zoom in'}
                   />
                 </div>
               </div>
@@ -181,6 +200,7 @@ export default function GalleryPage() {
                   className="lightbox-nav-btn lightbox-next"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setIsZoomed(false);
                     setActiveLightboxIndex(
                       activeLightboxIndex < galleryItems.length - 1
                         ? activeLightboxIndex + 1

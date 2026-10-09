@@ -124,7 +124,7 @@ export const seedData: LabData = {
     {
       id: 'gal-1',
       title: 'Autonomous Edge Cluster & Hardware Rig',
-      imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=85',
       category: 'Research Equipment',
       date: '2026-05-14',
       caption: 'Rack-mounted heterogeneous edge nodes, Jetson clusters, and low-power microservers running federated orchestration experiments.'
@@ -132,7 +132,7 @@ export const seedData: LabData = {
     {
       id: 'gal-2',
       title: 'UAV Field Trials & Aerial Edge Testbed',
-      imageUrl: 'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=2000&q=85',
       category: 'Field Trials',
       date: '2026-04-20',
       caption: 'Outdoor flight evaluation of aerial edge server lifetime optimization and energy-aware dynamic task offloading.'
@@ -140,7 +140,7 @@ export const seedData: LabData = {
     {
       id: 'gal-3',
       title: 'Collaborative Lab Hackathon & System Demo',
-      imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=2000&q=85',
       category: 'Lab Life',
       date: '2026-03-12',
       caption: 'PhD scholars and graduate researchers benchmarking decentralized consensus mechanisms during the quarterly lab hackathon.'
@@ -148,7 +148,7 @@ export const seedData: LabData = {
     {
       id: 'gal-4',
       title: 'International Edge Computing Conference',
-      imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=2000&q=85',
       category: 'Conferences',
       date: '2026-02-18',
       caption: 'Keynote presentation and technical paper dissemination at the flagship edge systems conference.'
@@ -156,7 +156,7 @@ export const seedData: LabData = {
     {
       id: 'gal-5',
       title: 'Embedded TinyML Sensor Node Prototyping',
-      imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=85',
       category: 'Research Equipment',
       date: '2026-01-29',
       caption: 'Soldering and hardware-in-the-loop validation of custom MCU boards designed for ultra-low power distributed inference.'
@@ -164,7 +164,7 @@ export const seedData: LabData = {
     {
       id: 'gal-6',
       title: 'Vehicular Edge & Connected Mobility Test',
-      imageUrl: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&w=2000&q=85',
       category: 'Field Trials',
       date: '2025-11-15',
       caption: 'Real-world vehicular telemetry and low-latency Roadside Unit (RSU) communication trial.'
@@ -172,7 +172,7 @@ export const seedData: LabData = {
     {
       id: 'gal-7',
       title: 'Annual Research Symposium & Poster Session',
-      imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=2000&q=85',
       category: 'Events',
       date: '2025-10-05',
       caption: 'Interactive poster displays and peer reviews with visiting scholars and industry research partners.'
@@ -180,7 +180,7 @@ export const seedData: LabData = {
     {
       id: 'gal-8',
       title: 'Robotics & Vision Edge Computing Bench',
-      imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=2000&q=85',
       category: 'Lab Life',
       date: '2025-08-22',
       caption: 'Testing real-time SLAM and computer vision models running directly on robotic platforms.'
