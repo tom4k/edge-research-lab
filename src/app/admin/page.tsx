@@ -9,6 +9,7 @@ import { PageVisibilityMap, UserRole } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 import { PersonImageUploadField } from '@/components/PersonImageUploadField';
 import { GalleryImageUploadField } from '@/components/GalleryImageUploadField';
+import { getUniqueLabPublications } from '@/lib/publicationUtils';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -250,8 +251,8 @@ export default function AdminPage() {
                 <span>People</span>
               </div>
               <div className="stat-card">
-                <strong>{data.publications.filter((p) => p.isLabRelevant !== false).length}</strong>
-                <span>Lab Relevant Publications</span>
+                <strong>{getUniqueLabPublications(data.publications || []).length}</strong>
+                <span>Distinct Lab Publications</span>
               </div>
               <div className="stat-card">
                 <strong>{(data.patents || []).length}</strong>

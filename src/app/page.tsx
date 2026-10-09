@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { Publication } from '@/lib/types';
+import { getUniqueLabPublications } from '@/lib/publicationUtils';
 
 export default function HomePage() {
   const { data } = useData();
@@ -33,9 +34,11 @@ export default function HomePage() {
     );
   };
 
-  const pubCount = data.publications
-    ? data.publications.filter((p) => Boolean(p.isLabRelevant)).length
-    : 0;
+  const uniqueLabPubs = React.useMemo(() => {
+    return getUniqueLabPublications(data.publications || []);
+  }, [data.publications]);
+
+  const pubCount = uniqueLabPubs.length;
   const activeResearchersCount = data.people
     ? data.people.filter((p) => p.group !== 'Alumni').length
     : 0;
@@ -43,11 +46,10 @@ export default function HomePage() {
   const patentCount = data.patents ? data.patents.length : 0;
 
   const recentPublications = React.useMemo(() => {
-    return (data.publications || [])
-      .filter((p) => Boolean(p.isLabRelevant))
+    return [...uniqueLabPubs]
       .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
       .slice(0, 3);
-  }, [data.publications]);
+  }, [uniqueLabPubs]);
 
   const displayStats = [
     {

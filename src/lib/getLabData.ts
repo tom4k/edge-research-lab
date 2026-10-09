@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { sql } from '@/lib/db';
 import { seedData } from '@/lib/seedData';
 import { LabData } from '@/lib/types';
+import { getUniqueLabPublications } from '@/lib/publicationUtils';
 
 export async function getLabData(): Promise<LabData> {
   // Ensure this function is only executed on the server side
@@ -96,8 +97,8 @@ export async function getLabData(): Promise<LabData> {
       stats: [
         {
           value: `${
-            publicationsDb.filter((p: any) => p.isLabRelevant !== false).length > 0
-              ? publicationsDb.filter((p: any) => p.isLabRelevant !== false).length + '+'
+            getUniqueLabPublications(publicationsDb as any[]).length > 0
+              ? getUniqueLabPublications(publicationsDb as any[]).length + '+'
               : '0'
           }`,
           label: 'Peer-reviewed publications'

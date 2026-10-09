@@ -5,6 +5,7 @@ import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { PageGuard } from '@/components/PageGuard';
 import { Publication } from '@/lib/types';
+import { getUniqueLabPublications } from '@/lib/publicationUtils';
 
 export default function PublicationsPage() {
   const { data } = useData();
@@ -17,20 +18,24 @@ export default function PublicationsPage() {
 
   const topListRef = useRef<HTMLDivElement>(null);
 
-  const years = useMemo(() => {
-    const list = Array.from(new Set(data.publications.map((p) => p.year).filter(Boolean))).sort().reverse();
-    return ['All', ...list];
+  // Deduplicate lab publications so co-authored papers appear exactly once
+  const uniqueLabPublications = useMemo(() => {
+    return getUniqueLabPublications(data.publications || []);
   }, [data.publications]);
 
-  const types = useMemo(() => {
-    const list = Array.from(new Set(data.publications.map((p) => p.type)));
+  const years = useMemo(() => {
+    const list = Array.from(new Set(uniqueLabPublications.map((p) => p.year).filter(Boolean))).sort().reverse();
     return ['All', ...list];
-  }, [data.publications]);
+  }, [uniqueLabPublications]);
+
+  const types = useMemo(() => {
+    const list = Array.from(new Set(uniqueLabPublications.map((p) => p.type)));
+    return ['All', ...list];
+  }, [uniqueLabPublications]);
 
   const filteredPublications = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
-    return [...data.publications]
-      .filter((p) => p.isLabRelevant !== false)
+    return [...uniqueLabPublications]
       .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
       .filter((p) => {
         const matchesYear = selectedYear === 'All' || p.year === selectedYear;
@@ -38,7 +43,7 @@ export default function PublicationsPage() {
         const matchesQuery = !q || `${p.title} ${p.authors} ${p.venue}`.toLowerCase().includes(q);
         return matchesYear && matchesType && matchesQuery;
       });
-  }, [data.publications, searchTerm, selectedYear, selectedType]);
+  }, [uniqueLabPublications, searchTerm, selectedYear, selectedType]);
 
   // Reset to first page when search, filters, or items-per-page change
   useEffect(() => {
