@@ -1,27 +1,21 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useData } from '@/context/DataContext';
 import { PageGuard } from '@/components/PageGuard';
 import { GalleryItem } from '@/lib/types';
 
 export default function GalleryPage() {
   const { data } = useData();
-  const [searchTerm, setSearchTerm] = useState('');
   const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const galleryItems: GalleryItem[] = data.gallery || [];
 
-  // Filter gallery items by search query (matching caption or date)
-  const filteredItems = useMemo(() => {
-    const q = searchTerm.toLowerCase().trim();
-    if (!q) return galleryItems;
-    return galleryItems.filter((item) => {
-      return `${item.caption || ''} ${item.date || ''}`
-        .toLowerCase()
-        .includes(q);
-    });
-  }, [galleryItems, searchTerm]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Keyboard navigation for Lightbox
   const handleKeyDown = useCallback(
@@ -31,15 +25,15 @@ export default function GalleryPage() {
         setActiveLightboxIndex(null);
       } else if (e.key === 'ArrowRight') {
         setActiveLightboxIndex((prev) =>
-          prev !== null && prev < filteredItems.length - 1 ? prev + 1 : 0
+          prev !== null && prev < galleryItems.length - 1 ? prev + 1 : 0
         );
       } else if (e.key === 'ArrowLeft') {
         setActiveLightboxIndex((prev) =>
-          prev !== null && prev > 0 ? prev - 1 : filteredItems.length - 1
+          prev !== null && prev > 0 ? prev - 1 : galleryItems.length - 1
         );
       }
     },
-    [activeLightboxIndex, filteredItems.length]
+    [activeLightboxIndex, galleryItems.length]
   );
 
   useEffect(() => {
@@ -47,7 +41,7 @@ export default function GalleryPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Prevent background scrolling when lightbox is open
+  // Lock body scroll when lightbox is open
   useEffect(() => {
     if (activeLightboxIndex !== null) {
       document.body.style.overflow = 'hidden';
@@ -59,67 +53,40 @@ export default function GalleryPage() {
     };
   }, [activeLightboxIndex]);
 
-  const activeItem = activeLightboxIndex !== null ? filteredItems[activeLightboxIndex] : null;
+  const activeItem = activeLightboxIndex !== null ? galleryItems[activeLightboxIndex] : null;
 
   return (
     <PageGuard pageKey="gallery" title="Gallery">
       <div className="page">
         {/* Page Heading */}
         <section className="page-heading">
-          <span className="eyebrow">Visual Moments</span>
+          <span className="eyebrow">Visual Highlights</span>
           <h1>Gallery</h1>
           <p>
-            Photographs and visual highlights from our lab testbeds, experiments, field trials, and events.
+            Photographs from our lab testbeds, deployments, field trials, and events.
           </p>
         </section>
 
-        {/* Gallery Content Section */}
+        {/* Pure Image Gallery Grid */}
         <section className="section">
-          {/* Search Toolbar */}
-          <div className="toolbar" style={{ marginBottom: '2rem' }}>
-            <input
-              type="text"
-              className="input"
-              placeholder="Search gallery by caption or date..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ flex: 1, maxWidth: '420px' }}
-            />
-            {filteredItems.length > 0 && (
-              <span style={{ fontSize: '0.88rem', color: 'var(--muted)', fontWeight: 600 }}>
-                {filteredItems.length} {filteredItems.length === 1 ? 'photo' : 'photos'}
-              </span>
-            )}
-          </div>
-
-          {/* Gallery Items Grid */}
-          {filteredItems.length === 0 ? (
+          {galleryItems.length === 0 ? (
             <div className="empty-state">
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🖼️</div>
-              <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>No photos found</h3>
+              <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>No photos available</h3>
               <p style={{ maxWidth: '480px', margin: '0 auto 1.5rem' }}>
-                No gallery photos match your search. Try clearing the search term.
+                The lab gallery has no images yet.
               </p>
-              {searchTerm && (
-                <button
-                  type="button"
-                  className="button button-outline"
-                  onClick={() => setSearchTerm('')}
-                >
-                  Clear search
-                </button>
-              )}
             </div>
           ) : (
             <div className="gallery-grid">
-              {filteredItems.map((item, index) => (
+              {galleryItems.map((item, index) => (
                 <article
                   key={item.id}
                   className="gallery-card"
                   onClick={() => setActiveLightboxIndex(index)}
                   tabIndex={0}
                   role="button"
-                  aria-label="View photo"
+                  aria-label="View large photo"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -130,119 +97,105 @@ export default function GalleryPage() {
                   <div className="gallery-thumb-container">
                     <img
                       src={item.imageUrl}
-                      alt={item.caption || 'Gallery photo'}
+                      alt="Gallery photograph"
                       className="gallery-thumb-img"
                       loading="lazy"
                     />
                     <div className="gallery-overlay">
-                      <span style={{ transform: 'scale(1.2)' }}>🔍</span>
+                      <span>🔍</span>
                     </div>
-                    {item.date && (
-                      <span className="gallery-date-badge">{item.date}</span>
-                    )}
                   </div>
-
-                  {item.caption && (
-                    <div className="gallery-body">
-                      <p className="gallery-caption">{item.caption}</p>
-                    </div>
-                  )}
                 </article>
               ))}
             </div>
           )}
         </section>
 
-        {/* Lightbox Modal — Always visible top-right close button without scrolling */}
-        {activeItem && activeLightboxIndex !== null && (
-          <div
-            className="lightbox-backdrop"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setActiveLightboxIndex(null);
-              }
-            }}
-          >
-            {/* Top-Right Fixed Close Button (Always visible on any screen size) */}
-            <button
-              type="button"
-              className="lightbox-close-btn"
-              onClick={() => setActiveLightboxIndex(null)}
-              aria-label="Close photo viewer"
-              title="Close (Esc)"
-            >
-              ✕
-            </button>
-
-            {/* Top-Left Fixed Photo Counter */}
-            <div className="lightbox-counter">
-              {activeLightboxIndex + 1} / {filteredItems.length}
-            </div>
-
-            {/* Previous Button */}
-            {filteredItems.length > 1 && (
-              <button
-                type="button"
-                className="lightbox-nav-btn lightbox-prev"
-                onClick={() =>
-                  setActiveLightboxIndex(
-                    activeLightboxIndex > 0
-                      ? activeLightboxIndex - 1
-                      : filteredItems.length - 1
-                  )
-                }
-                aria-label="Previous photo"
-                title="Previous photo (Left arrow)"
-              >
-                ‹
-              </button>
-            )}
-
-            {/* Centered Image Content */}
+        {/* Lightbox Modal — Rendered via Portal directly to body to bypass any ancestor stacking contexts */}
+        {mounted &&
+          activeItem &&
+          activeLightboxIndex !== null &&
+          createPortal(
             <div
-              className="lightbox-content"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setActiveLightboxIndex(null);
-                }
-              }}
+              className="lightbox-backdrop"
+              onClick={() => setActiveLightboxIndex(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Photo viewer"
             >
-              <div className="lightbox-img-wrapper">
-                <img
-                  src={activeItem.imageUrl}
-                  alt={activeItem.caption || 'Gallery photo view'}
-                  className="lightbox-img"
-                />
-              </div>
-            </div>
-
-            {/* Next Button */}
-            {filteredItems.length > 1 && (
+              {/* Close Button — Permanently visible at top right */}
               <button
                 type="button"
-                className="lightbox-nav-btn lightbox-next"
-                onClick={() =>
-                  setActiveLightboxIndex(
-                    activeLightboxIndex < filteredItems.length - 1
-                      ? activeLightboxIndex + 1
-                      : 0
-                  )
-                }
-                aria-label="Next photo"
-                title="Next photo (Right arrow)"
+                className="lightbox-close-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveLightboxIndex(null);
+                }}
+                aria-label="Close photo viewer"
+                title="Close (Esc)"
               >
-                ›
+                ✕
               </button>
-            )}
 
-            {/* Bottom Caption Overlay (if available) */}
-            {activeItem.caption && (
-              <div className="lightbox-footer">
-                <p>{activeItem.caption}</p>
+              {/* Previous Button */}
+              {galleryItems.length > 1 && (
+                <button
+                  type="button"
+                  className="lightbox-nav-btn lightbox-prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveLightboxIndex(
+                      activeLightboxIndex > 0
+                        ? activeLightboxIndex - 1
+                        : galleryItems.length - 1
+                    );
+                  }}
+                  aria-label="Previous photo"
+                  title="Previous (Left arrow)"
+                >
+                  ‹
+                </button>
+              )}
+
+              {/* Centered Large Image */}
+              <div
+                className="lightbox-content"
+                onClick={() => setActiveLightboxIndex(null)}
+              >
+                <div
+                  className="lightbox-img-wrapper"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <img
+                    src={activeItem.imageUrl}
+                    alt="Gallery photo large view"
+                    className="lightbox-img"
+                  />
+                </div>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Next Button */}
+              {galleryItems.length > 1 && (
+                <button
+                  type="button"
+                  className="lightbox-nav-btn lightbox-next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveLightboxIndex(
+                      activeLightboxIndex < galleryItems.length - 1
+                        ? activeLightboxIndex + 1
+                        : 0
+                    );
+                  }}
+                  aria-label="Next photo"
+                  title="Next (Right arrow)"
+                >
+                  ›
+                </button>
+              )}
+            </div>,
+            document.body
+          )}
       </div>
     </PageGuard>
   );
