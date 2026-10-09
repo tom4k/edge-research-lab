@@ -29,6 +29,7 @@ export const SiteHeader: React.FC = () => {
     ...(activePages.people ? [{ href: '/people', label: 'People', active: pathname === '/people' }] : []),
     ...(activePages.publications ? [{ href: '/publications', label: 'Publications', active: pathname === '/publications' }] : []),
     ...(activePages.patents !== false ? [{ href: '/patents', label: 'Patents', active: pathname === '/patents' }] : []),
+    ...(activePages.gallery !== false ? [{ href: '/gallery', label: 'Gallery', active: pathname === '/gallery' }] : []),
     ...(activePages.projects ? [{ href: '/projects', label: 'Projects', active: pathname === '/projects' }] : []),
     ...(activePages.news ? [{ href: '/news', label: 'News', active: pathname === '/news' }] : []),
     ...(activePages.contact ? [{ href: '/contact', label: 'Contact', active: pathname === '/contact' }] : [])

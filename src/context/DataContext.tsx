@@ -7,29 +7,31 @@ import { useToast } from './ToastContext';
 
 const STORAGE_KEY = 'edgesys-lab-data-v1';
 
+export type CollectionKey = 'research' | 'people' | 'publications' | 'patents' | 'gallery' | 'projects' | 'news';
+
 interface DataContextType {
   data: LabData;
   saveData: (message?: string) => void;
   updateSettings: (settings: Partial<LabSettings>) => void;
   togglePageActive: (pageKey: keyof PageVisibilityMap) => void;
-  addItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+  addItem: <K extends CollectionKey>(
     collection: K,
-    item: Omit<LabData[K][number], 'id'>
+    item: Omit<NonNullable<LabData[K]>[number], 'id'>
   ) => void;
-  updateItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+  updateItem: <K extends CollectionKey>(
     collection: K,
     id: string,
-    updated: Partial<LabData[K][number]>
+    updated: Partial<NonNullable<LabData[K]>[number]>
   ) => void;
-  deleteItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+  deleteItem: <K extends CollectionKey>(
     collection: K,
     id: string
   ) => void;
-  reorderItems: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+  reorderItems: <K extends CollectionKey>(
     collection: K,
-    newItems: LabData[K]
+    newItems: NonNullable<LabData[K]>
   ) => void;
-  moveItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+  moveItem: <K extends CollectionKey>(
     collection: K,
     id: string,
     direction: 'up' | 'down'
@@ -79,6 +81,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
           }
           if (!content.patents) {
             content.patents = [...seedData.patents];
+          }
+          if (!content.gallery) {
+            content.gallery = [...(seedData.gallery || [])];
           }
           setData(content);
           try {
@@ -171,13 +176,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const addItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    <K extends CollectionKey>(
       collection: K,
-      item: Omit<LabData[K][number], 'id'>
+      item: Omit<NonNullable<LabData[K]>[number], 'id'>
     ) => {
       const id = `id-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-      const newItem = { ...item, id } as LabData[K][number];
-      const updatedList = [...(data[collection] || []), newItem];
+      const newItem = { ...item, id } as NonNullable<LabData[K]>[number];
+      const updatedList = [...((data[collection] as any[]) || []), newItem];
       const updatedData = { ...data, [collection]: updatedList };
       persist(updatedData, 'Item added successfully');
     },
@@ -185,12 +190,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const updateItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    <K extends CollectionKey>(
       collection: K,
       id: string,
-      updatedFields: Partial<LabData[K][number]>
+      updatedFields: Partial<NonNullable<LabData[K]>[number]>
     ) => {
-      const updatedList = (data[collection] || []).map((item) =>
+      const updatedList = ((data[collection] as any[]) || []).map((item) =>
         item.id === id ? { ...item, ...updatedFields } : item
       );
       const updatedData = { ...data, [collection]: updatedList };
@@ -200,7 +205,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const deleteItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    <K extends CollectionKey>(
       collection: K,
       id: string
     ) => {
@@ -263,9 +268,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const reorderItems = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    <K extends CollectionKey>(
       collection: K,
-      newItems: LabData[K]
+      newItems: NonNullable<LabData[K]>
     ) => {
       const updatedData = { ...data, [collection]: newItems };
       persist(updatedData, `Reordered ${collection}`);
@@ -274,7 +279,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
   );
 
   const moveItem = useCallback(
-    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    <K extends CollectionKey>(
       collection: K,
       id: string,
       direction: 'up' | 'down'

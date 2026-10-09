@@ -16,15 +16,18 @@ export async function getLabData(): Promise<LabData> {
     }
 
     let patentsDb: any[] = seedData.patents;
+    let galleryDb: any[] = seedData.gallery || [];
     let peopleOrder: string[] = [];
     if (sql) {
       try {
-        const rows = await sql`SELECT collection_name, items FROM lab_collections WHERE collection_name IN ('patents', 'people_order')`;
+        const rows = await sql`SELECT collection_name, items FROM lab_collections WHERE collection_name IN ('patents', 'people_order', 'gallery')`;
         if (rows && rows.length > 0) {
           for (const row of rows) {
             const parsed = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
             if (row.collection_name === 'patents' && Array.isArray(parsed)) {
               patentsDb = parsed;
+            } else if (row.collection_name === 'gallery' && Array.isArray(parsed)) {
+              galleryDb = parsed;
             } else if (row.collection_name === 'people_order' && Array.isArray(parsed)) {
               peopleOrder = parsed;
             }
@@ -104,6 +107,7 @@ export async function getLabData(): Promise<LabData> {
         { value: `${patentsDb.length}`, label: 'Patents' }
       ],
       patents: patentsDb,
+      gallery: galleryDb,
       research: (researchDb as any[]).map((r: any) => ({
         id: r.id,
         title: r.title,

@@ -14,6 +14,7 @@ export interface PageVisibilityMap {
   people: boolean;
   publications: boolean;
   patents?: boolean;
+  gallery?: boolean;
   projects: boolean;
   news: boolean;
   contact: boolean;
@@ -110,6 +111,15 @@ export interface NewsItem {
   summary: string;
 }
 
+export interface GalleryItem {
+  id: string;
+  title: string;
+  imageUrl: string;
+  caption?: string;
+  category?: string;
+  date?: string;
+}
+
 export interface LabData {
   settings: LabSettings;
   stats: StatItem[];
@@ -117,6 +127,7 @@ export interface LabData {
   people: Person[];
   publications: Publication[];
   patents: Patent[];
+  gallery?: GalleryItem[];
   projects: Project[];
   news: NewsItem[];
 }

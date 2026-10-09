@@ -212,6 +212,20 @@ export async function POST(request: Request) {
       }
     }
 
+    // 8. Sync Gallery
+    if (sql && Array.isArray(body.gallery)) {
+      try {
+        await sql`
+          INSERT INTO lab_collections (collection_name, items, updated_at)
+          VALUES ('gallery', ${JSON.stringify(body.gallery)}, NOW())
+          ON CONFLICT (collection_name)
+          DO UPDATE SET items = ${JSON.stringify(body.gallery)}, updated_at = NOW();
+        `;
+      } catch (err) {
+        console.warn('Could not sync gallery to lab_collections:', err);
+      }
+    }
+
     // Purge cached Next.js pages so all devices get the fresh database content immediately
     revalidatePath('/', 'layout');
 

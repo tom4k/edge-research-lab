@@ -8,6 +8,7 @@ import { useToast } from '@/context/ToastContext';
 import { PageVisibilityMap, UserRole } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 import { PersonImageUploadField } from '@/components/PersonImageUploadField';
+import { GalleryImageUploadField } from '@/components/GalleryImageUploadField';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -17,7 +18,7 @@ export default function AdminPage() {
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
-  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news' | 'data'>('dashboard');
+  const [adminSection, setAdminSection] = useState<'dashboard' | 'pages' | 'users' | 'theme' | 'settings' | 'research' | 'people' | 'publications' | 'patents' | 'gallery' | 'projects' | 'news' | 'data'>('dashboard');
 
   const themePresets = [
     { id: 'cyber-blue', name: 'Cyber Edge Blue (Default)', primary: '#0d63ff', accent: '#13c8c2', navy: '#07152f' },
@@ -45,6 +46,7 @@ export default function AdminPage() {
   const [groupFilter, setGroupFilter] = useState('All');
   const [relevanceFilter, setRelevanceFilter] = useState('All');
   const [patentStatusFilter, setPatentStatusFilter] = useState('All');
+  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState('All');
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -212,6 +214,9 @@ export default function AdminPage() {
           <button className={adminSection === 'patents' ? 'active' : ''} onClick={() => setAdminSection('patents')}>
             Patents
           </button>
+          <button className={adminSection === 'gallery' ? 'active' : ''} onClick={() => setAdminSection('gallery')}>
+            Gallery
+          </button>
           <button className={adminSection === 'projects' ? 'active' : ''} onClick={() => setAdminSection('projects')}>
             Projects
           </button>
@@ -254,6 +259,10 @@ export default function AdminPage() {
                 <span>Patents</span>
               </div>
               <div className="stat-card">
+                <strong>{(data.gallery || []).length}</strong>
+                <span>Gallery Photos</span>
+              </div>
+              <div className="stat-card">
                 <strong>{data.projects.length}</strong>
                 <span>Projects</span>
               </div>
@@ -281,7 +290,7 @@ export default function AdminPage() {
                 Toggle pages on or off. Deactivated pages will hide from the header & footer navigation and display an offline guard notice if visited directly.
               </p>
 
-              {(['research', 'people', 'publications', 'patents', 'projects', 'news', 'contact'] as (keyof PageVisibilityMap)[]).map((key) => (
+              {(['research', 'people', 'publications', 'patents', 'gallery', 'projects', 'news', 'contact'] as (keyof PageVisibilityMap)[]).map((key) => (
                 <div key={key} className="page-toggle-row">
                   <div className="page-toggle-info">
                     <strong>{key} Page</strong>
@@ -609,8 +618,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* COLLECTION CRUD SECTIONS (RESEARCH, PEOPLE, PUBLICATIONS, PATENTS, PROJECTS, NEWS) */}
-        {['research', 'people', 'publications', 'patents', 'projects', 'news'].includes(adminSection) && (
+        {/* COLLECTION CRUD SECTIONS (RESEARCH, PEOPLE, PUBLICATIONS, PATENTS, GALLERY, PROJECTS, NEWS) */}
+        {['research', 'people', 'publications', 'patents', 'gallery', 'projects', 'news'].includes(adminSection) && (
           <div>
             <div className="admin-topbar">
               <div>
@@ -631,20 +640,20 @@ export default function AdminPage() {
                   className="button"
                   onClick={() => setEditingItem({ collection: adminSection, data: {} })}
                 >
-                  + Add {adminSection === 'people' ? 'Person' : adminSection === 'patents' ? 'Patent' : adminSection.slice(0, -1)}
+                  + Add {adminSection === 'people' ? 'Person' : adminSection === 'patents' ? 'Patent' : adminSection === 'gallery' ? 'Photo' : adminSection.slice(0, -1)}
                 </button>
               </div>
             </div>
 
             {(() => {
-              const rawItems = ((data[adminSection as keyof typeof data] as any[]) || (adminSection === 'patents' ? (seedData.patents || []) : [])) || [];
+              const rawItems = ((data[adminSection as keyof typeof data] as any[]) || (adminSection === 'patents' ? (seedData.patents || []) : adminSection === 'gallery' ? (seedData.gallery || []) : [])) || [];
               const q = tableSearch.toLowerCase().trim();
 
               const filteredItems = rawItems.filter((item) => {
                 // Text search across common fields
                 const textMatch =
                   !q ||
-                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.inventors || ''} ${item.patentNumber || ''} ${item.jurisdiction || ''} ${item.lead || ''} ${item.summary || ''} ${item.interests || ''}`
+                  `${item.title || item.name || ''} ${item.role || ''} ${item.venue || ''} ${item.authors || ''} ${item.inventors || ''} ${item.patentNumber || ''} ${item.jurisdiction || ''} ${item.lead || ''} ${item.summary || ''} ${item.interests || ''} ${item.category || ''} ${item.caption || ''}`
                     .toLowerCase()
                     .includes(q);
 
@@ -662,6 +671,11 @@ export default function AdminPage() {
                 // Status filter for Patents
                 if (adminSection === 'patents' && patentStatusFilter !== 'All') {
                   if (item.status !== patentStatusFilter) return false;
+                }
+
+                // Category filter for Gallery
+                if (adminSection === 'gallery' && galleryCategoryFilter !== 'All') {
+                  if (item.category !== galleryCategoryFilter) return false;
                 }
 
                 return textMatch;
@@ -723,6 +737,24 @@ export default function AdminPage() {
                           <option value="Pending">Pending</option>
                         </select>
                       )}
+
+                      {adminSection === 'gallery' && (
+                        <select
+                          className="select"
+                          value={galleryCategoryFilter}
+                          onChange={(e) => setGalleryCategoryFilter(e.target.value)}
+                          style={{ width: '180px' }}
+                        >
+                          <option value="All">All Categories</option>
+                          {Array.from(
+                            new Set(rawItems.map((it: any) => it.category?.trim()).filter(Boolean))
+                          ).map((cat: any) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
                     <span style={{ fontSize: '0.86rem', color: 'var(--muted)', fontWeight: 600 }}>
@@ -759,6 +791,15 @@ export default function AdminPage() {
                               <th>Patent Title & Status</th>
                               <th>Inventors & Jurisdiction</th>
                               <th>Patent No & Year</th>
+                              <th>Actions</th>
+                            </>
+                          )}
+
+                          {adminSection === 'gallery' && (
+                            <>
+                              <th style={{ width: '110px' }}>Photo</th>
+                              <th>Title & Category</th>
+                              <th>Date & Caption</th>
                               <th>Actions</th>
                             </>
                           )}
@@ -1010,6 +1051,62 @@ export default function AdminPage() {
                                   </td>
                                   <td style={{ fontSize: '0.85rem', fontWeight: 600 }}>
                                     {item.patentNumber}
+                                  </td>
+                                </>
+                              )}
+
+                              {/* GALLERY TABLE CELLS */}
+                              {adminSection === 'gallery' && (
+                                <>
+                                  <td>
+                                    <div
+                                      style={{
+                                        width: '96px',
+                                        height: '60px',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        background: 'var(--surface-soft)',
+                                        border: '1px solid var(--line)',
+                                        display: 'grid',
+                                        placeItems: 'center'
+                                      }}
+                                    >
+                                      {item.imageUrl ? (
+                                        <img
+                                          src={item.imageUrl}
+                                          alt={item.title}
+                                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                      ) : (
+                                        <span style={{ fontSize: '1.4rem' }}>🖼️</span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.title}</strong>
+                                    {item.category && (
+                                      <span
+                                        className="tag"
+                                        style={{
+                                          fontSize: '0.72rem',
+                                          marginTop: '4px',
+                                          background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
+                                          color: 'var(--primary)'
+                                        }}
+                                      >
+                                        {item.category}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem', maxWidth: '340px' }}>
+                                    {item.date && (
+                                      <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>
+                                        📅 {item.date}
+                                      </div>
+                                    )}
+                                    <div style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                      {item.caption || 'No caption provided'}
+                                    </div>
                                   </td>
                                 </>
                               )}
@@ -1342,7 +1439,7 @@ export default function AdminPage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 style={{ textTransform: 'capitalize' }}>
-                {editingItem.id ? 'Edit' : 'Add'} {editingItem.collection === 'people' ? 'Person' : editingItem.collection === 'patents' ? 'Patent' : editingItem.collection.slice(0, -1)}
+                {editingItem.id ? 'Edit' : 'Add'} {editingItem.collection === 'people' ? 'Person' : editingItem.collection === 'patents' ? 'Patent' : editingItem.collection === 'gallery' ? 'Gallery Photo' : editingItem.collection.slice(0, -1)}
               </h2>
               <button className="icon-button" onClick={() => setEditingItem(null)}>
                 ×
@@ -1526,6 +1623,63 @@ export default function AdminPage() {
                   </div>
                   <div className="field span-2"><label>Summary / Abstract</label><textarea className="textarea" name="summary" defaultValue={editingItem.data?.summary || ''} /></div>
                   <div className="field span-2"><label>Patent Official URL (Optional)</label><input className="input" name="url" type="url" defaultValue={editingItem.data?.url || ''} placeholder="https://patents.google.com/patent/..." /></div>
+                </>
+              )}
+
+              {editingItem.collection === 'gallery' && (
+                <>
+                  <div className="field span-2">
+                    <label>Photo Title *</label>
+                    <input
+                      className="input"
+                      name="title"
+                      defaultValue={editingItem.data?.title || ''}
+                      placeholder="e.g. Edge Server Cluster Deployment"
+                      required
+                    />
+                  </div>
+                  <GalleryImageUploadField
+                    initialUrl={editingItem.data?.imageUrl || ''}
+                    name="imageUrl"
+                  />
+                  <div className="field">
+                    <label>Category</label>
+                    <input
+                      className="input"
+                      name="category"
+                      defaultValue={editingItem.data?.category || 'Lab Life'}
+                      list="admin-gallery-categories-list"
+                      placeholder="e.g. Research Equipment, Lab Life..."
+                    />
+                    <datalist id="admin-gallery-categories-list">
+                      <option value="Research Equipment" />
+                      <option value="Lab Life" />
+                      <option value="Conferences" />
+                      <option value="Field Trials" />
+                      <option value="Events" />
+                      <option value="Workshops" />
+                    </datalist>
+                  </div>
+                  <div className="field">
+                    <label>Date (Optional)</label>
+                    <input
+                      className="input"
+                      name="date"
+                      type="text"
+                      defaultValue={editingItem.data?.date || ''}
+                      placeholder="e.g. 2026-10-09 or October 2026"
+                    />
+                  </div>
+                  <div className="field span-2">
+                    <label>Caption / Description (Optional)</label>
+                    <textarea
+                      className="textarea"
+                      name="caption"
+                      defaultValue={editingItem.data?.caption || ''}
+                      placeholder="Detailed context or description of this photo..."
+                      rows={3}
+                    />
+                  </div>
                 </>
               )}
 
