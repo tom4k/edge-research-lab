@@ -473,6 +473,10 @@ input:checked + .slider:before { transform: translateX(22px); }
 .site-footer p, .site-footer a, .site-footer span, .site-footer button { color: #a9b9cf; }
 .site-footer a:hover, .site-footer button:hover { color: white; }
 .footer-brand { margin-bottom: 10px; }
+.footer-institution { margin-top: 14px; }
+.footer-institution a { display: inline-block; transition: opacity 0.2s ease, transform 0.2s ease; line-height: 0; }
+.footer-institution a:hover { opacity: 0.92; transform: translateY(-1px); }
+.iiitk-footer-logo { height: 56px; width: auto; max-width: 260px; object-fit: contain; display: block; }
 .copyright { grid-column: 1 / -1; border-top: 1px solid #1b2c47; padding-top: 24px; margin-top: 20px; font-size: .84rem; }
 
 .toast-container { position: fixed; right: 20px; bottom: 20px; z-index: 800; display: grid; gap: 10px; }

@@ -41,6 +41,21 @@ export const SiteFooter: React.FC = () => {
           />
         </Link>
         <p>{s.description}</p>
+        <div className="footer-institution" style={{ marginTop: '14px' }}>
+          <a
+            href="https://www.iiitkottayam.ac.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Indian Institute of Information Technology Kottayam"
+            aria-label="Indian Institute of Information Technology Kottayam"
+          >
+            <img
+              src="/images/iiitk-logo.png"
+              alt="Indian Institute of Information Technology Kottayam"
+              className="iiitk-footer-logo"
+            />
+          </a>
+        </div>
       </div>
 
       <div>
