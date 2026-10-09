@@ -81,7 +81,7 @@ export default function HomePage() {
               Explore Our Research →
             </Link>
             <Link className="button button-secondary" href="/publications">
-              View Publications 📚
+              View Publications
             </Link>
           </div>
 
