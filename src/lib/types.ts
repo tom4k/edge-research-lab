@@ -113,8 +113,8 @@ export interface NewsItem {
 
 export interface GalleryItem {
   id: string;
-  title: string;
   imageUrl: string;
+  title?: string;
   caption?: string;
   category?: string;
   date?: string;

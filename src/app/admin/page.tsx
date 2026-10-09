@@ -46,7 +46,6 @@ export default function AdminPage() {
   const [groupFilter, setGroupFilter] = useState('All');
   const [relevanceFilter, setRelevanceFilter] = useState('All');
   const [patentStatusFilter, setPatentStatusFilter] = useState('All');
-  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState('All');
   
   // Modal State for Adding User (Super Admin)
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -673,11 +672,6 @@ export default function AdminPage() {
                   if (item.status !== patentStatusFilter) return false;
                 }
 
-                // Category filter for Gallery
-                if (adminSection === 'gallery' && galleryCategoryFilter !== 'All') {
-                  if (item.category !== galleryCategoryFilter) return false;
-                }
-
                 return textMatch;
               });
 
@@ -737,24 +731,6 @@ export default function AdminPage() {
                           <option value="Pending">Pending</option>
                         </select>
                       )}
-
-                      {adminSection === 'gallery' && (
-                        <select
-                          className="select"
-                          value={galleryCategoryFilter}
-                          onChange={(e) => setGalleryCategoryFilter(e.target.value)}
-                          style={{ width: '180px' }}
-                        >
-                          <option value="All">All Categories</option>
-                          {Array.from(
-                            new Set(rawItems.map((it: any) => it.category?.trim()).filter(Boolean))
-                          ).map((cat: any) => (
-                            <option key={cat} value={cat}>
-                              {cat}
-                            </option>
-                          ))}
-                        </select>
-                      )}
                     </div>
 
                     <span style={{ fontSize: '0.86rem', color: 'var(--muted)', fontWeight: 600 }}>
@@ -797,9 +773,9 @@ export default function AdminPage() {
 
                           {adminSection === 'gallery' && (
                             <>
-                              <th style={{ width: '110px' }}>Photo</th>
-                              <th>Title & Category</th>
-                              <th>Date & Caption</th>
+                              <th style={{ width: '120px' }}>Photo</th>
+                              <th>Caption / Description</th>
+                              <th style={{ width: '140px' }}>Date</th>
                               <th>Actions</th>
                             </>
                           )}
@@ -1061,8 +1037,8 @@ export default function AdminPage() {
                                   <td>
                                     <div
                                       style={{
-                                        width: '96px',
-                                        height: '60px',
+                                        width: '100px',
+                                        height: '64px',
                                         borderRadius: '8px',
                                         overflow: 'hidden',
                                         background: 'var(--surface-soft)',
@@ -1074,7 +1050,7 @@ export default function AdminPage() {
                                       {item.imageUrl ? (
                                         <img
                                           src={item.imageUrl}
-                                          alt={item.title}
+                                          alt={item.caption || 'Gallery photo'}
                                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                       ) : (
@@ -1083,30 +1059,12 @@ export default function AdminPage() {
                                     </div>
                                   </td>
                                   <td>
-                                    <strong style={{ fontSize: '0.95rem', display: 'block' }}>{item.title}</strong>
-                                    {item.category && (
-                                      <span
-                                        className="tag"
-                                        style={{
-                                          fontSize: '0.72rem',
-                                          marginTop: '4px',
-                                          background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
-                                          color: 'var(--primary)'
-                                        }}
-                                      >
-                                        {item.category}
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem', maxWidth: '340px' }}>
-                                    {item.date && (
-                                      <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>
-                                        📅 {item.date}
-                                      </div>
-                                    )}
-                                    <div style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                    <span style={{ fontSize: '0.92rem', color: item.caption ? 'var(--text)' : 'var(--muted)', fontStyle: item.caption ? 'normal' : 'italic' }}>
                                       {item.caption || 'No caption provided'}
-                                    </div>
+                                    </span>
+                                  </td>
+                                  <td style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                                    {item.date ? `📅 ${item.date}` : '—'}
                                   </td>
                                 </>
                               )}
@@ -1465,6 +1423,10 @@ export default function AdminPage() {
                   }
                 });
 
+                if (editingItem.collection === 'gallery' && !values.title) {
+                  values.title = values.caption || 'Gallery Photo';
+                }
+
                 if (editingItem.id) {
                   updateItem(editingItem.collection as any, editingItem.id, values);
                 } else {
@@ -1628,39 +1590,21 @@ export default function AdminPage() {
 
               {editingItem.collection === 'gallery' && (
                 <>
-                  <div className="field span-2">
-                    <label>Photo Title *</label>
-                    <input
-                      className="input"
-                      name="title"
-                      defaultValue={editingItem.data?.title || ''}
-                      placeholder="e.g. Edge Server Cluster Deployment"
-                      required
-                    />
-                  </div>
                   <GalleryImageUploadField
                     initialUrl={editingItem.data?.imageUrl || ''}
                     name="imageUrl"
                   />
-                  <div className="field">
-                    <label>Category</label>
-                    <input
-                      className="input"
-                      name="category"
-                      defaultValue={editingItem.data?.category || 'Lab Life'}
-                      list="admin-gallery-categories-list"
-                      placeholder="e.g. Research Equipment, Lab Life..."
+                  <div className="field span-2">
+                    <label>Caption / Description (Optional)</label>
+                    <textarea
+                      className="textarea"
+                      name="caption"
+                      defaultValue={editingItem.data?.caption || ''}
+                      placeholder="Caption or description for this photo..."
+                      rows={3}
                     />
-                    <datalist id="admin-gallery-categories-list">
-                      <option value="Research Equipment" />
-                      <option value="Lab Life" />
-                      <option value="Conferences" />
-                      <option value="Field Trials" />
-                      <option value="Events" />
-                      <option value="Workshops" />
-                    </datalist>
                   </div>
-                  <div className="field">
+                  <div className="field span-2">
                     <label>Date (Optional)</label>
                     <input
                       className="input"
@@ -1668,16 +1612,6 @@ export default function AdminPage() {
                       type="text"
                       defaultValue={editingItem.data?.date || ''}
                       placeholder="e.g. 2026-10-09 or October 2026"
-                    />
-                  </div>
-                  <div className="field span-2">
-                    <label>Caption / Description (Optional)</label>
-                    <textarea
-                      className="textarea"
-                      name="caption"
-                      defaultValue={editingItem.data?.caption || ''}
-                      placeholder="Detailed context or description of this photo..."
-                      rows={3}
                     />
                   </div>
                 </>
