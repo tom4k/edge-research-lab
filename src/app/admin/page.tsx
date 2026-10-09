@@ -11,7 +11,7 @@ import { PersonImageUploadField } from '@/components/PersonImageUploadField';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
-  const { data, updateSettings, togglePageActive, addItem, updateItem, deleteItem, setPersonPublications, importJSON, exportJSON, resetDemoData } = useData();
+  const { data, updateSettings, togglePageActive, addItem, updateItem, deleteItem, moveItem, reorderItems, setPersonPublications, importJSON, exportJSON, resetDemoData } = useData();
   const { toast } = useToast();
 
   const [usernameInput, setUsernameInput] = useState('');
@@ -37,6 +37,8 @@ export default function AdminPage() {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [curatingPerson, setCuratingPerson] = useState<any>(null);
   const [syncingPersonId, setSyncingPersonId] = useState<string | null>(null);
+  const [isReorderingPeople, setIsReorderingPeople] = useState(false);
+  const [draggedPersonIndex, setDraggedPersonIndex] = useState<number | null>(null);
 
   // Table Filter & Search States
   const [tableSearch, setTableSearch] = useState('');
@@ -529,12 +531,23 @@ export default function AdminPage() {
                 <span className="eyebrow">Collection Management</span>
                 <h1 style={{ textTransform: 'capitalize' }}>{adminSection}</h1>
               </div>
-              <button
-                className="button"
-                onClick={() => setEditingItem({ collection: adminSection, data: {} })}
-              >
-                + Add {adminSection === 'people' ? 'Person' : adminSection === 'patents' ? 'Patent' : adminSection.slice(0, -1)}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                {adminSection === 'people' && (
+                  <button
+                    className="button button-outline"
+                    onClick={() => setIsReorderingPeople(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    ⇅ Reorder People
+                  </button>
+                )}
+                <button
+                  className="button"
+                  onClick={() => setEditingItem({ collection: adminSection, data: {} })}
+                >
+                  + Add {adminSection === 'people' ? 'Person' : adminSection === 'patents' ? 'Patent' : adminSection.slice(0, -1)}
+                </button>
+              </div>
             </div>
 
             {(() => {
@@ -637,6 +650,7 @@ export default function AdminPage() {
                         <tr>
                           {adminSection === 'people' && (
                             <>
+                              <th style={{ width: '70px', textAlign: 'center' }}>Order</th>
                               <th>Researcher Profile</th>
                               <th>Contact & Scholar</th>
                               <th>Publications</th>
@@ -706,6 +720,55 @@ export default function AdminPage() {
                               {/* PEOPLE TABLE CELLS */}
                               {adminSection === 'people' && (
                                 <>
+                                  <td style={{ textAlign: 'center', width: '70px', padding: '8px 4px' }}>
+                                    {(() => {
+                                      const fullList = data.people || [];
+                                      const currentIdx = fullList.findIndex((p) => p.id === item.id);
+                                      const isFirst = currentIdx === 0;
+                                      const isLast = currentIdx === fullList.length - 1;
+                                      return (
+                                        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                                          <button
+                                            type="button"
+                                            className="icon-button"
+                                            title="Move Up"
+                                            disabled={isFirst}
+                                            onClick={() => moveItem('people', item.id, 'up')}
+                                            style={{
+                                              width: '26px',
+                                              height: '24px',
+                                              padding: 0,
+                                              fontSize: '0.75rem',
+                                              cursor: isFirst ? 'not-allowed' : 'pointer',
+                                              opacity: isFirst ? 0.25 : 1
+                                            }}
+                                          >
+                                            ▲
+                                          </button>
+                                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--muted)', minWidth: '24px', textAlign: 'center' }}>
+                                            #{currentIdx >= 0 ? currentIdx + 1 : '-'}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            className="icon-button"
+                                            title="Move Down"
+                                            disabled={isLast}
+                                            onClick={() => moveItem('people', item.id, 'down')}
+                                            style={{
+                                              width: '26px',
+                                              height: '24px',
+                                              padding: 0,
+                                              fontSize: '0.75rem',
+                                              cursor: isLast ? 'not-allowed' : 'pointer',
+                                              opacity: isLast ? 0.25 : 1
+                                            }}
+                                          >
+                                            ▼
+                                          </button>
+                                        </div>
+                                      );
+                                    })()}
+                                  </td>
                                   <td>
                                     <div className="table-user-cell">
                                       <div
@@ -1579,6 +1642,203 @@ export default function AdminPage() {
                   </div>
                 ));
               })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL FOR REORDERING PEOPLE */}
+      {isReorderingPeople && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setIsReorderingPeople(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 99999,
+            background: 'rgba(2, 8, 20, 0.78)',
+            backdropFilter: 'blur(8px)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: '24px'
+          }}
+        >
+          <div
+            className="modal"
+            style={{ maxWidth: '780px', width: '92%', maxHeight: '85vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">Display Ordering</span>
+                <h2 style={{ margin: '0.25rem 0 0 0' }}>Reorder People</h2>
+                <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8, fontSize: '0.85rem' }}>
+                  Drag items or use the arrow buttons to arrange the sequence of researchers on the public People page.
+                </p>
+              </div>
+              <button className="icon-button" onClick={() => setIsReorderingPeople(false)}>
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {(data.people || []).map((person, index) => {
+                const isFirst = index === 0;
+                const isLast = index === (data.people || []).length - 1;
+                const isDragging = draggedPersonIndex === index;
+
+                return (
+                  <div
+                    key={person.id}
+                    draggable
+                    onDragStart={() => setDraggedPersonIndex(index)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedPersonIndex === null || draggedPersonIndex === index) return;
+                      const list = [...(data.people || [])];
+                      const [dragged] = list.splice(draggedPersonIndex, 1);
+                      list.splice(index, 0, dragged);
+                      reorderItems('people', list);
+                      setDraggedPersonIndex(null);
+                    }}
+                    className="card"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.85rem',
+                      padding: '0.65rem 0.95rem',
+                      cursor: 'grab',
+                      transition: 'all 0.15s ease',
+                      opacity: isDragging ? 0.45 : 1,
+                      border: isDragging ? '1px dashed var(--primary)' : '1px solid var(--line)',
+                      background: 'var(--surface)'
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: 'var(--muted)',
+                        fontSize: '1.2rem',
+                        cursor: 'grab',
+                        userSelect: 'none',
+                        lineHeight: 1
+                      }}
+                      title="Drag to reorder"
+                    >
+                      ⠿
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 800,
+                        fontSize: '0.85rem',
+                        color: 'var(--primary)',
+                        minWidth: '28px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      #{index + 1}
+                    </span>
+                    <div
+                      className="table-user-avatar"
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        padding: 0,
+                        background: 'var(--surface-soft)',
+                        flexShrink: 0
+                      }}
+                    >
+                      {person.image ? (
+                        <img
+                          src={person.image}
+                          alt={person.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        person.name.slice(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <strong style={{ fontSize: '0.92rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {person.name}
+                      </strong>
+                      <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', marginTop: '2px' }}>
+                        <span className="tag" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>{person.group}</span>
+                        <small style={{ color: 'var(--muted)', fontSize: '0.74rem' }}>· {person.role}</small>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        className="button button-small button-outline"
+                        title="Move to Top"
+                        disabled={isFirst}
+                        onClick={() => {
+                          const list = [...(data.people || [])];
+                          const [item] = list.splice(index, 1);
+                          list.unshift(item);
+                          reorderItems('people', list);
+                        }}
+                        style={{ fontSize: '0.7rem', padding: '3px 7px', opacity: isFirst ? 0.3 : 1 }}
+                      >
+                        Top
+                      </button>
+                      <button
+                        type="button"
+                        className="button button-small button-outline"
+                        title="Move Up"
+                        disabled={isFirst}
+                        onClick={() => moveItem('people', person.id, 'up')}
+                        style={{ fontSize: '0.75rem', padding: '3px 8px', opacity: isFirst ? 0.3 : 1 }}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        className="button button-small button-outline"
+                        title="Move Down"
+                        disabled={isLast}
+                        onClick={() => moveItem('people', person.id, 'down')}
+                        style={{ fontSize: '0.75rem', padding: '3px 8px', opacity: isLast ? 0.3 : 1 }}
+                      >
+                        ▼
+                      </button>
+                      <button
+                        type="button"
+                        className="button button-small button-outline"
+                        title="Move to Bottom"
+                        disabled={isLast}
+                        onClick={() => {
+                          const list = [...(data.people || [])];
+                          const [item] = list.splice(index, 1);
+                          list.push(item);
+                          reorderItems('people', list);
+                        }}
+                        style={{ fontSize: '0.7rem', padding: '3px 7px', opacity: isLast ? 0.3 : 1 }}
+                      >
+                        Bottom
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button className="button" onClick={() => setIsReorderingPeople(false)}>
+                Done
+              </button>
             </div>
           </div>
         </div>

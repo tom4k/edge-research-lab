@@ -79,6 +79,20 @@ export async function POST(request: Request) {
 
     // 3. Sync People
     if (Array.isArray(people)) {
+      if (sql) {
+        try {
+          const orderIds = people.map((p) => p.id);
+          await sql`
+            INSERT INTO lab_collections (collection_name, items, updated_at)
+            VALUES ('people_order', ${JSON.stringify(orderIds)}, NOW())
+            ON CONFLICT (collection_name)
+            DO UPDATE SET items = ${JSON.stringify(orderIds)}, updated_at = NOW();
+          `;
+        } catch (err) {
+          console.warn('Could not sync people_order to lab_collections:', err);
+        }
+      }
+
       await prisma.person.deleteMany({});
       for (const p of people) {
         await prisma.person.create({

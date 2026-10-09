@@ -16,13 +16,18 @@ export async function getLabData(): Promise<LabData> {
     }
 
     let patentsDb: any[] = seedData.patents;
+    let peopleOrder: string[] = [];
     if (sql) {
       try {
-        const rows = await sql`SELECT items FROM lab_collections WHERE collection_name = 'patents' LIMIT 1`;
-        if (rows && rows.length > 0 && rows[0].items) {
-          const parsed = typeof rows[0].items === 'string' ? JSON.parse(rows[0].items) : rows[0].items;
-          if (Array.isArray(parsed)) {
-            patentsDb = parsed;
+        const rows = await sql`SELECT collection_name, items FROM lab_collections WHERE collection_name IN ('patents', 'people_order')`;
+        if (rows && rows.length > 0) {
+          for (const row of rows) {
+            const parsed = typeof row.items === 'string' ? JSON.parse(row.items) : row.items;
+            if (row.collection_name === 'patents' && Array.isArray(parsed)) {
+              patentsDb = parsed;
+            } else if (row.collection_name === 'people_order' && Array.isArray(parsed)) {
+              peopleOrder = parsed;
+            }
           }
         }
       } catch {}
@@ -42,6 +47,31 @@ export async function getLabData(): Promise<LabData> {
     }
 
     const activePages = (settingsDb.activePages as any) || seedData.settings.activePages;
+
+    const sortedPeople = (peopleDb as any[]).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      role: p.role,
+      group: p.group,
+      bio: p.bio,
+      interests: p.interests,
+      email: p.email,
+      image: p.image || '',
+      scholarUrl: p.scholarUrl || '',
+      orcid: p.orcid || '',
+      dblpId: p.dblpId || ''
+    }));
+
+    if (peopleOrder.length > 0) {
+      sortedPeople.sort((a, b) => {
+        const idxA = peopleOrder.indexOf(a.id);
+        const idxB = peopleOrder.indexOf(b.id);
+        if (idxA === -1 && idxB === -1) return 0;
+        if (idxA === -1) return 1;
+        if (idxB === -1) return -1;
+        return idxA - idxB;
+      });
+    }
 
     return {
       settings: {
@@ -80,19 +110,7 @@ export async function getLabData(): Promise<LabData> {
         description: r.description,
         tags: r.tags || []
       })),
-      people: (peopleDb as any[]).map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        role: p.role,
-        group: p.group,
-        bio: p.bio,
-        interests: p.interests,
-        email: p.email,
-        image: p.image || '',
-        scholarUrl: p.scholarUrl || '',
-        orcid: p.orcid || '',
-        dblpId: p.dblpId || ''
-      })),
+      people: sortedPeople,
       publications: (publicationsDb as any[]).map((pub: any) => ({
         id: pub.id,
         title: pub.title,

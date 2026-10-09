@@ -25,6 +25,15 @@ interface DataContextType {
     collection: K,
     id: string
   ) => void;
+  reorderItems: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    collection: K,
+    newItems: LabData[K]
+  ) => void;
+  moveItem: <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+    collection: K,
+    id: string,
+    direction: 'up' | 'down'
+  ) => void;
   setPersonPublications: (personId: string, personName: string, publications: Publication[]) => void;
   resetDemoData: () => void;
   importJSON: (jsonString: string) => boolean;
@@ -39,6 +48,8 @@ const DataContext = createContext<DataContextType>({
   addItem: () => {},
   updateItem: () => {},
   deleteItem: () => {},
+  reorderItems: () => {},
+  moveItem: () => {},
   setPersonPublications: () => {},
   resetDemoData: () => {},
   importJSON: () => false,
@@ -241,6 +252,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
     [data, persist]
   );
 
+  const reorderItems = useCallback(
+    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+      collection: K,
+      newItems: LabData[K]
+    ) => {
+      const updatedData = { ...data, [collection]: newItems };
+      persist(updatedData, `Reordered ${collection}`);
+    },
+    [data, persist]
+  );
+
+  const moveItem = useCallback(
+    <K extends 'research' | 'people' | 'publications' | 'patents' | 'projects' | 'news'>(
+      collection: K,
+      id: string,
+      direction: 'up' | 'down'
+    ) => {
+      const list = [...((data[collection] as any[]) || [])];
+      const index = list.findIndex((item) => item.id === id);
+      if (index === -1) return;
+
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= list.length) return;
+
+      const [removed] = list.splice(index, 1);
+      list.splice(targetIndex, 0, removed);
+
+      const updatedData = { ...data, [collection]: list };
+      persist(updatedData, 'Order updated');
+    },
+    [data, persist]
+  );
+
   const resetDemoData = useCallback(() => {
     const fresh = cloneSeed();
     persist(fresh, 'Demo content restored');
@@ -287,6 +331,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode; initialData?: L
         addItem,
         updateItem,
         deleteItem,
+        reorderItems,
+        moveItem,
         setPersonPublications,
         resetDemoData,
         importJSON,
