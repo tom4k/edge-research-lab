@@ -103,20 +103,23 @@ export default function PeoplePage() {
                           ))}
                       </div>
                       <div className="person-actions">
-                        <div className="person-links">
+                        <div className="person-contact-buttons">
                           {person.email && (
                             <a
-                              className="person-link person-email"
+                              className="button button-small button-outline person-btn person-email-btn"
                               href={`mailto:${person.email}`}
-                              title={person.email}
+                              title={`Email ${person.name}`}
                             >
-                              <span>✉</span>
-                              <span className="person-link-text">{person.email}</span>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                <rect width="20" height="16" x="2" y="4" rx="2" />
+                                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                              </svg>
+                              <span>Email</span>
                             </a>
                           )}
                           {person.linkedin && (
                             <a
-                              className="person-link person-linkedin"
+                              className="button button-small button-outline person-btn person-linkedin-btn"
                               href={formatLinkedInUrl(person.linkedin)}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -125,7 +128,7 @@ export default function PeoplePage() {
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
                                 <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45a1.62 1.62 0 0 0-1.63 1.63c0 .9.73 1.63 1.63 1.63.9 0 1.63-.73 1.63-1.63 0-.9-.73-1.63-1.63-1.63Z" />
                               </svg>
-                              <span className="person-link-text">LinkedIn</span>
+                              <span>LinkedIn</span>
                             </a>
                           )}
                         </div>

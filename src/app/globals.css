@@ -314,55 +314,53 @@ main { min-height: 70vh; overflow: clip; }
   font-size: .72rem;
 }
 .person-actions {
-  margin-top: 10px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-.person-links {
+.person-contact-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
-.person-link {
+.person-btn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.86rem;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.82rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  padding: 6px 12px;
+  border-radius: 8px;
   text-decoration: none;
-  width: fit-content;
-}
-.person-link-text {
-  word-break: break-all;
-}
-.person-email {
-  color: #60a5fa;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-}
-.person-email:hover {
-  color: #93c5fd;
-  text-decoration: underline;
-}
-.person-linkedin {
-  color: #38bdf8;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(14, 165, 233, 0.12);
-  border: 1px solid rgba(14, 165, 233, 0.28);
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  width: fit-content;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: all 0.2s ease;
 }
-.person-linkedin:hover {
-  background: rgba(14, 165, 233, 0.24);
-  border-color: rgba(14, 165, 233, 0.5);
-  color: #bae6fd;
+.person-email-btn {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  color: #93c5fd;
+}
+.person-email-btn:hover {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.person-linkedin-btn {
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  color: #38bdf8;
+}
+.person-linkedin-btn:hover {
+  background: rgba(14, 165, 233, 0.22);
+  border-color: rgba(14, 165, 233, 0.55);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 .person-pubs-btn {
