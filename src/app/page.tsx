@@ -12,7 +12,8 @@ export default function HomePage() {
   const s = data.settings;
 
   const copyCitation = (pub: Publication) => {
-    const citation = `${pub.authors} (${pub.year}). ${pub.title}. ${pub.venue}.${
+    const yearStr = pub.year ? ` (${pub.year})` : '';
+    const citation = `${pub.authors}${yearStr}. ${pub.title}. ${pub.venue}.${
       pub.doi ? ` https://doi.org/${pub.doi}` : ''
     }`;
     navigator.clipboard.writeText(citation).then(() => {
@@ -173,7 +174,7 @@ export default function HomePage() {
         <div>
           {data.publications.slice(0, 3).map((pub) => (
             <article key={pub.id} className="publication-item">
-              <div className="publication-year">{pub.year}</div>
+              <div className="publication-year">{pub.year || '—'}</div>
               <div>
                 <span className="tag">{pub.type}</span>
                 <h3>{pub.title}</h3>

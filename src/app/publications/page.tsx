@@ -14,7 +14,7 @@ export default function PublicationsPage() {
   const [selectedType, setSelectedType] = useState('All');
 
   const years = useMemo(() => {
-    const list = Array.from(new Set(data.publications.map((p) => p.year))).sort().reverse();
+    const list = Array.from(new Set(data.publications.map((p) => p.year).filter(Boolean))).sort().reverse();
     return ['All', ...list];
   }, [data.publications]);
 
@@ -27,7 +27,7 @@ export default function PublicationsPage() {
     const q = searchTerm.toLowerCase().trim();
     return [...data.publications]
       .filter((p) => p.isLabRelevant !== false)
-      .sort((a, b) => Number(b.year) - Number(a.year))
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
       .filter((p) => {
         const matchesYear = selectedYear === 'All' || p.year === selectedYear;
         const matchesType = selectedType === 'All' || p.type === selectedType;
@@ -37,7 +37,8 @@ export default function PublicationsPage() {
   }, [data.publications, searchTerm, selectedYear, selectedType]);
 
   const copyCitation = (pub: Publication) => {
-    const citation = `${pub.authors} (${pub.year}). ${pub.title}. ${pub.venue}.${
+    const yearStr = pub.year ? ` (${pub.year})` : '';
+    const citation = `${pub.authors}${yearStr}. ${pub.title}. ${pub.venue}.${
       pub.doi ? ` https://doi.org/${pub.doi}` : ''
     }`;
     navigator.clipboard.writeText(citation).then(() => {
@@ -93,7 +94,7 @@ export default function PublicationsPage() {
             <div>
               {filteredPublications.map((pub) => (
                 <article key={pub.id} className="publication-item">
-                  <div className="publication-year">{pub.year}</div>
+                  <div className="publication-year">{pub.year || '—'}</div>
                   <div>
                     <span className="tag">{pub.type}</span>
                     <h3>{pub.title}</h3>

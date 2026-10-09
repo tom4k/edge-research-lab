@@ -880,7 +880,7 @@ export default function AdminPage() {
                                   <td style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>{item.authors}</td>
                                   <td>
                                     <strong style={{ fontSize: '0.88rem', display: 'block' }}>{item.venue}</strong>
-                                    <span className="tag" style={{ marginTop: '0.2rem' }}>{item.year}</span>
+                                    {item.year && <span className="tag" style={{ marginTop: '0.2rem' }}>{item.year}</span>}
                                   </td>
                                   <td>
                                     <button
@@ -1623,7 +1623,7 @@ export default function AdminPage() {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
                         <span className="tag">{pub.type}</span>
-                        <span className="tag">{pub.year}</span>
+                        {pub.year && <span className="tag">{pub.year}</span>}
                       </div>
                       <strong style={{ fontSize: '1rem', display: 'block', marginBottom: '0.25rem' }}>
                         {pub.title}

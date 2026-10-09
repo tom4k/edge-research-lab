@@ -40,14 +40,14 @@ export function PersonPublicationsModal({
   }, [isOpen]);
 
   const years = useMemo(() => {
-    const list = Array.from(new Set(publications.map((p) => p.year))).sort().reverse();
+    const list = Array.from(new Set(publications.map((p) => p.year).filter(Boolean))).sort().reverse();
     return ['All', ...list];
   }, [publications]);
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase().trim();
     return [...publications]
-      .sort((a, b) => Number(b.year) - Number(a.year))
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0))
       .filter((p) => {
         const matchesYear = selectedYear === 'All' || p.year === selectedYear;
         const matchesQuery = !q || `${p.title} ${p.authors} ${p.venue}`.toLowerCase().includes(q);
@@ -56,7 +56,8 @@ export function PersonPublicationsModal({
   }, [publications, searchTerm, selectedYear]);
 
   const copyCitation = (pub: Publication) => {
-    const citation = `${pub.authors} (${pub.year}). ${pub.title}. ${pub.venue}.${
+    const yearStr = pub.year ? ` (${pub.year})` : '';
+    const citation = `${pub.authors}${yearStr}. ${pub.title}. ${pub.venue}.${
       pub.doi ? ` https://doi.org/${pub.doi}` : ''
     }`;
     navigator.clipboard.writeText(citation).then(() => {
@@ -136,7 +137,7 @@ export function PersonPublicationsModal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {filtered.map((pub) => (
               <article key={pub.id} className="publication-item" style={{ margin: 0 }}>
-                <div className="publication-year">{pub.year}</div>
+                <div className="publication-year">{pub.year || '—'}</div>
                 <div>
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
                     <span className="tag">{pub.type}</span>
