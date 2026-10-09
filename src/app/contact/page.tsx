@@ -1,42 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useData } from '@/context/DataContext';
-import { useToast } from '@/context/ToastContext';
 import { PageGuard } from '@/components/PageGuard';
 
 export default function ContactPage() {
   const { data } = useData();
-  const { toast } = useToast();
   const s = data.settings;
-
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const submissions = JSON.parse(localStorage.getItem('edgesys-contact-submissions') || '[]');
-      submissions.push({
-        name,
-        email,
-        subject,
-        message,
-        date: new Date().toISOString()
-      });
-      localStorage.setItem('edgesys-contact-submissions', JSON.stringify(submissions));
-
-      setName('');
-      setEmail('');
-      setSubject('');
-      setMessage('');
-      toast('Enquiry saved successfully!');
-    } catch (err) {
-      toast('Failed to save enquiry');
-    }
-  };
 
   return (
     <PageGuard pageKey="contact" title="Contact">
@@ -50,79 +20,80 @@ export default function ContactPage() {
         </section>
 
         <section className="section">
-          <div className="contact-layout">
-            <div className="contact-panel">
-              <span className="eyebrow">Lab information</span>
-              <h2>{s.labName}</h2>
-              <p>{s.location}</p>
-              <p>
-                <strong>Email</strong>
-                <br />
-                <a href={`mailto:${s.email}`}>{s.email}</a>
-              </p>
-              <p>
-                <strong>Phone</strong>
-                <br />
-                {s.phone}
-              </p>
-              <p>
-                <strong>Research focus</strong>
-                <br />
+          <div className="contact-panel" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span className="eyebrow">Lab information</span>
+            <h2 style={{ fontSize: '1.8rem', marginTop: '0.5rem', marginBottom: '1.5rem', color: '#fff' }}>
+              {s.labName}
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+              <div>
+                <strong style={{ display: 'block', color: '#fff', marginBottom: '0.35rem', fontSize: '0.95rem' }}>
+                  Location
+                </strong>
+                <p style={{ margin: 0, lineHeight: '1.6' }}>{s.location}</p>
+              </div>
+
+              <div>
+                <strong style={{ display: 'block', color: '#fff', marginBottom: '0.35rem', fontSize: '0.95rem' }}>
+                  Email
+                </strong>
+                <p style={{ margin: 0 }}>
+                  <a
+                    href={`mailto:${s.email}`}
+                    style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 500 }}
+                  >
+                    {s.email}
+                  </a>
+                </p>
+              </div>
+
+              {s.phone && (
+                <div>
+                  <strong style={{ display: 'block', color: '#fff', marginBottom: '0.35rem', fontSize: '0.95rem' }}>
+                    Phone
+                  </strong>
+                  <p style={{ margin: 0, lineHeight: '1.6' }}>
+                    <a
+                      href={`tel:${s.phone.replace(/[^\d+]/g, '')}`}
+                      style={{ color: '#b8c7db', textDecoration: 'none' }}
+                    >
+                      {s.phone}
+                    </a>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+              <strong style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
+                Research focus
+              </strong>
+              <p style={{ margin: 0, lineHeight: '1.7' }}>
                 Edge computing, fog computing, distributed systems, intelligent orchestration, IoT, and vehicular computing.
               </p>
             </div>
 
-            <form className="contact-form" onSubmit={handleSubmit}>
-              <div className="form-row">
-                <div className="field">
-                  <label htmlFor="contact-name">Name</label>
-                  <input
-                    className="input"
-                    id="contact-name"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="contact-email">Email</label>
-                  <input
-                    className="input"
-                    id="contact-email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="field">
-                <label htmlFor="contact-subject">Subject</label>
-                <input
-                  className="input"
-                  id="contact-subject"
-                  required
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="contact-message">Message</label>
-                <textarea
-                  className="textarea"
-                  id="contact-message"
-                  required
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                />
-              </div>
-              <button className="button" type="submit">
-                Send enquiry
-              </button>
-              <small style={{ color: 'var(--muted)' }}>
-                Demo mode: form submissions are saved locally in this browser.
-              </small>
-            </form>
+            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <a
+                className="button button-primary"
+                href={`mailto:${s.email}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                Send Email
+              </a>
+              {s.website && (
+                <a
+                  className="button button-outline"
+                  href={s.website.startsWith('http') ? s.website : `https://${s.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ borderColor: 'rgba(255, 255, 255, 0.2)', color: '#fff' }}
+                >
+                  Visit Website
+                </a>
+              )}
+            </div>
           </div>
         </section>
       </div>
