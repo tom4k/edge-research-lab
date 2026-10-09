@@ -112,6 +112,16 @@ export default function PublicationsPage() {
                         DOI
                       </a>
                     )}
+                    {pub.url && (
+                      <a
+                        className="button button-small button-outline"
+                        href={pub.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View Paper
+                      </a>
+                    )}
                     <button
                       className="button button-small button-secondary"
                       onClick={() => copyCitation(pub)}

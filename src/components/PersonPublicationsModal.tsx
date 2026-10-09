@@ -164,7 +164,7 @@ export function PersonPublicationsModal({
                       DOI
                     </a>
                   )}
-                  {pub.url && !pub.doi && (
+                  {pub.url && (
                     <a
                       className="button button-small button-outline"
                       href={pub.url}
