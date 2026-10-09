@@ -9,7 +9,7 @@ import { PageVisibilityMap, UserRole } from '@/lib/types';
 import { seedData } from '@/lib/seedData';
 import { PersonImageUploadField } from '@/components/PersonImageUploadField';
 import { GalleryImageUploadField } from '@/components/GalleryImageUploadField';
-import { getUniqueLabPublications } from '@/lib/publicationUtils';
+import { getUniqueLabPublications, formatLinkedInUrl } from '@/lib/publicationUtils';
 
 export default function AdminPage() {
   const { user, isAuthenticated, isSuperAdmin, login, logout, usersList, addAdminUser, updateAdminUser, removeAdminUser } = useAuth();
@@ -911,15 +911,27 @@ export default function AdminPage() {
                                     <a className="card-link" href={`mailto:${item.email}`} style={{ fontSize: '0.85rem' }}>
                                       {item.email}
                                     </a>
-                                    <div style={{ marginTop: '0.25rem' }}>
+                                    <div style={{ marginTop: '0.25rem', display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                                       {item.scholarUrl ? (
                                         <span className="tag" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)', fontSize: '0.7rem' }}>
-                                          ✓ Scholar Linked
+                                          ✓ Scholar
                                         </span>
                                       ) : (
                                         <span className="tag" style={{ opacity: 0.6, fontSize: '0.7rem' }}>
-                                          No Scholar Link
+                                          No Scholar
                                         </span>
+                                      )}
+                                      {item.linkedin && (
+                                        <a
+                                          href={formatLinkedInUrl(item.linkedin)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="tag"
+                                          style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8', borderColor: 'rgba(14, 165, 233, 0.35)', fontSize: '0.7rem', textDecoration: 'none' }}
+                                          title={item.linkedin}
+                                        >
+                                          in LinkedIn
+                                        </a>
                                       )}
                                     </div>
                                   </td>
@@ -1505,6 +1517,16 @@ export default function AdminPage() {
                       placeholder="https://scholar.google.com/citations?user=..."
                       defaultValue={editingItem.data?.scholarUrl || ''}
                       required
+                    />
+                  </div>
+                  <div className="field span-2">
+                    <label>LinkedIn Handle or URL (Optional)</label>
+                    <input
+                      className="input"
+                      name="linkedin"
+                      type="text"
+                      placeholder="e.g. ananya-rao or https://linkedin.com/in/ananya-rao"
+                      defaultValue={editingItem.data?.linkedin || ''}
                     />
                   </div>
                   <div className="field span-2"><label>Research Interests</label><input className="input" name="interests" defaultValue={editingItem.data?.interests || ''} /></div>

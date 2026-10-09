@@ -33,6 +33,23 @@ export function normalizeTitle(title?: string): string {
 }
 
 /**
+ * Formats a LinkedIn handle or URL into a clean, canonical LinkedIn profile URL.
+ * Accepts: "ananya-rao", "@ananya-rao", "in/ananya-rao", "https://linkedin.com/in/ananya-rao"
+ */
+export function formatLinkedInUrl(handleOrUrl?: string): string {
+  if (!handleOrUrl) return '';
+  const trimmed = handleOrUrl.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('linkedin.com/') || trimmed.startsWith('www.linkedin.com/')) {
+    return `https://${trimmed}`;
+  }
+  const clean = trimmed.replace(/^@/, '').replace(/^in\//, '').replace(/\/+$/, '').trim();
+  return `https://www.linkedin.com/in/${clean}`;
+}
+
+/**
  * Formats a publication count into 5's+ milestone buckets as requested:
  * - 25 publications -> "20+"
  * - 38 publications -> "35+"

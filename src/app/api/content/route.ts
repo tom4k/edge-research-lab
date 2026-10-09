@@ -112,7 +112,8 @@ export async function POST(request: Request) {
             image: p.image || '',
             scholarUrl: p.scholarUrl || '',
             orcid: p.orcid || '',
-            dblpId: p.dblpId || ''
+            dblpId: p.dblpId || '',
+            linkedin: p.linkedin || ''
           },
           create: {
             id: p.id,
@@ -125,7 +126,8 @@ export async function POST(request: Request) {
             image: p.image || '',
             scholarUrl: p.scholarUrl || '',
             orcid: p.orcid || '',
-            dblpId: p.dblpId || ''
+            dblpId: p.dblpId || '',
+            linkedin: p.linkedin || ''
           }
         });
       }

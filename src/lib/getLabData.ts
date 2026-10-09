@@ -63,7 +63,8 @@ export async function getLabData(): Promise<LabData> {
       image: p.image || '',
       scholarUrl: p.scholarUrl || '',
       orcid: p.orcid || '',
-      dblpId: p.dblpId || ''
+      dblpId: p.dblpId || '',
+      linkedin: p.linkedin || ''
     }));
 
     if (peopleOrder.length > 0) {

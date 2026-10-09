@@ -63,6 +63,7 @@ model Person {
   scholarUrl String   @default("") @map("scholar_url")
   orcid      String?
   dblpId     String?  @map("dblp_id")
+  linkedin   String?
   createdAt  DateTime @default(now()) @map("created_at")
 
   publications Publication[]

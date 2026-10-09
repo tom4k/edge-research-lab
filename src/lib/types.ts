@@ -62,6 +62,7 @@ export interface Person {
   scholarUrl?: string;
   orcid?: string;
   dblpId?: string;
+  linkedin?: string;
 }
 
 export interface Publication {
